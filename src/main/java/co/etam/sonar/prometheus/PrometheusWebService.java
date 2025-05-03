@@ -10,10 +10,12 @@ import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.server.ws.WebService;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Measures;
+import org.sonarqube.ws.Measures.Measure;
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.SearchRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
+import org.sonarqube.ws.client.measures.MeasuresService;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -39,6 +41,14 @@ public class PrometheusWebService implements WebService {
         SUPPORTED_METRICS.add(CoreMetrics.CODE_SMELLS);
         SUPPORTED_METRICS.add(CoreMetrics.COVERAGE);
         SUPPORTED_METRICS.add(CoreMetrics.TECHNICAL_DEBT);
+        SUPPORTED_METRICS.add(CoreMetrics.COMPLEXITY);
+        SUPPORTED_METRICS.add(CoreMetrics.LINES_TO_COVER);
+        SUPPORTED_METRICS.add(CoreMetrics.VIOLATIONS);
+        SUPPORTED_METRICS.add(CoreMetrics.ALERT_STATUS);
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS);
+        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES);
+        SUPPORTED_METRICS.add(CoreMetrics.NCLOC);
+        
     }
 
     public PrometheusWebService(Configuration configuration) {

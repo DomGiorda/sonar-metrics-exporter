@@ -3,3 +3,4 @@ target
 *.iml
 dependency-reduced-pom.xml
 .flattened-pom.xml
+.vscode
