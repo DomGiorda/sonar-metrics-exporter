@@ -1,0 +1,2413 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "description": "The `Sonarqube - Analysis Dashboard` dashboard presents all metrics in detail and is meant for finer-grained analytics.",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 8,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "- Lines (lines): The number of physical lines \n- Lines of code (ncloc): The number of physical lines that contain at least one character\n- Comment lines (comment_lines): The number of lines containing comment",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 15,
+          "x": 0,
+          "y": 0
+        },
+        "id": 62,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_ncloc",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Line of Code",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The comment lines density = comment lines / (lines of code + comment lines) * 100",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "orange",
+                  "value": 70
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "m"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 9,
+          "x": 15,
+          "y": 0
+        },
+        "id": 68,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_sqale_index",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Technical Debt",
+        "type": "gauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 5
+        },
+        "id": 10,
+        "panels": [],
+        "title": "Quality gates",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The state of the quality gate associated with your project. Possible values are ERROR and OK",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "1": {
+                    "color": "dark-green",
+                    "index": 0,
+                    "text": "Passed"
+                  },
+                  "2": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "Warn"
+                  },
+                  "3": {
+                    "color": "dark-red",
+                    "index": 1,
+                    "text": "Failed"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 6
+        },
+        "id": 42,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "sonarqube_alert_status",
+            "format": "heatmap",
+            "instant": false,
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Quality Gate Status",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of classes (including nested classes, interfaces, enums, and annotations).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "scheme",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 3,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 12,
+          "y": 6
+        },
+        "id": 60,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_security_hotspots",
+            "format": "heatmap",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Security Hostpots",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of classes (including nested classes, interfaces, enums, and annotations).",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "scheme",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 3,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 0,
+          "y": 11
+        },
+        "id": 81,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_code_smells",
+            "format": "heatmap",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Code Smells",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of functions. Depending on the language, a function is defined as either a function, a method, or a paragraph.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 19
+        },
+        "id": 66,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_vulnerabilities",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Vulnerabilities",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        },
+        "id": 6,
+        "panels": [],
+        "title": "Issues",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The total count of issues in all states.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 15,
+          "x": 0,
+          "y": 25
+        },
+        "id": 34,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_violations",
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Total of Issues",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The total count of issues in the state.",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 7,
+          "w": 9,
+          "x": 15,
+          "y": 25
+        },
+        "id": 32,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "open_issues{domain=\"Issues\",project_key=\"$project_key\"} ",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sonarqube_lines_to_cover",
+            "hide": false,
+            "legendFormat": "{{key}}",
+            "range": true,
+            "refId": "B"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "confirmed_issues{domain=\"Issues\",project_key=\"$project_key\"} ",
+            "hide": false,
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "C"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "false_positive_issues{domain=\"Issues\",project_key=\"$project_key\"} ",
+            "hide": false,
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "D"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "wont_fix_issues{domain=\"Issues\",project_key=\"$project_key\"} ",
+            "hide": false,
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "E"
+          }
+        ],
+        "title": "Lines To Cover",
+        "type": "timeseries"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 32
+        },
+        "id": 14,
+        "panels": [],
+        "title": "Security",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of vulnerability issues.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 33
+        },
+        "id": 50,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "vulnerabilities{domain=\"Security\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The number of vulnerability issues.",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The measure is stored in minutes in the DB. An 8-hour day is assumed when values are shown in days.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "m"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 33
+        },
+        "id": 54,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "security_remediation_effort{domain=\"Security\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The effort to fix all vulnerability issues",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of Security Hotspots",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 33
+        },
+        "id": 56,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "security_hotspots_reviewed_status{domain=\"SecurityReview\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The number of Security Hotspots",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Security Rating (security_rating)\n- A = 0 Vulnerabilities\n- B = at least 1 Minor Vulnerability\n- C = at least 1 Major Vulnerability\n- D = at least 1 Critical Vulnerability\n- E = at least 1 Blocker Vulnerability",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "1": {
+                    "color": "dark-green",
+                    "index": 0,
+                    "text": "A"
+                  },
+                  "2": {
+                    "color": "super-light-green",
+                    "index": 1,
+                    "text": "B"
+                  },
+                  "3": {
+                    "color": "yellow",
+                    "index": 2,
+                    "text": "C"
+                  },
+                  "4": {
+                    "color": "orange",
+                    "index": 3,
+                    "text": "D"
+                  },
+                  "5": {
+                    "color": "dark-red",
+                    "index": 4,
+                    "text": "E"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 7,
+          "x": 0,
+          "y": 38
+        },
+        "id": 52,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "security_rating{domain=\"Security\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Security Rating",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The security review rating is a letter grade based on the percentage of Reviewed Security Hotspots.\n- A = >= 80%\n- B = >= 70% and <80%\n- C = >= 50% and <70%\n- D = >= 30% and <50%\n- E = < 30%",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "1": {
+                    "color": "dark-green",
+                    "index": 0,
+                    "text": "A"
+                  },
+                  "2": {
+                    "color": "super-light-green",
+                    "index": 1,
+                    "text": "B"
+                  },
+                  "3": {
+                    "color": "yellow",
+                    "index": 2,
+                    "text": "C"
+                  },
+                  "4": {
+                    "color": "orange",
+                    "index": 3,
+                    "text": "D"
+                  },
+                  "5": {
+                    "color": "dark-red",
+                    "index": 4,
+                    "text": "E"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 7,
+          "x": 7,
+          "y": 38
+        },
+        "id": 58,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "security_review_rating{domain=\"SecurityReview\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Security review rating",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 41
+        },
+        "id": 4,
+        "panels": [],
+        "title": "Duplications",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "- Duplicated blocks (duplicated_blocks): The number of duplicated blocks of lines.\n- Duplicated lines (duplicated_lines): The number of lines involved in duplications.\n- Duplicated files (duplicated_files): The number of files involved in duplications.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 13,
+          "x": 0,
+          "y": 42
+        },
+        "id": 26,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "duplicated_lines{domain=\"Duplications\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "duplicated_files{domain=\"Duplications\",project_key=\"$project_key\"} ",
+            "hide": false,
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "B"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "duplicated_blocks{domain=\"Duplications\",project_key=\"$project_key\"}",
+            "hide": false,
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "C"
+          }
+        ],
+        "title": "Duplications",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Duplicated lines (%) (duplicated_lines_density): duplicated_lines / (lines of code) * 100",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "orange",
+                  "value": 70
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            },
+            "unit": "percent"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 5,
+          "w": 5,
+          "x": 13,
+          "y": 42
+        },
+        "id": 28,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "duplicated_lines_density{domain=\"Duplications\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Duplicated Lines (%)",
+        "type": "gauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 47
+        },
+        "id": 18,
+        "panels": [],
+        "title": "Tests",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Coverage = (CT + CF + LC)/(2*B + EL)\nwhere:\n- CT = conditions that have been evaluated to 'true' at least once\n- CF = conditions that have been evaluated to 'false' at least once\n- LC = covered lines = linestocover - uncovered_lines\n- B = total number of conditions\n- EL = total number of executable lines (lines_to_cover)\n",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "orange",
+                  "value": 70
+                },
+                {
+                  "color": "red",
+                  "value": 85
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 0,
+          "y": 48
+        },
+        "id": 76,
+        "options": {
+          "minVizHeight": 75,
+          "minVizWidth": 75,
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "sizing": "auto"
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "coverage{domain=\"Coverage\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Coverage",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of lines of code that could be covered by unit tests (for example, blank lines or full comments lines are not considered as lines to cover).",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 7,
+          "y": 48
+        },
+        "id": 74,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "lines_to_cover{domain=\"Coverage\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The number of lines that covered by unit test",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number of unit tests.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 14,
+          "y": 48
+        },
+        "id": 72,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "percentChangeColorMode": "standard",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showPercentChange": false,
+          "textMode": "auto",
+          "wideLayout": true
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "tests{domain=\"Coverage\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The number of unit tests.",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The number append of rule in scan result ",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 23,
+          "x": 0,
+          "y": 52
+        },
+        "id": 78,
+        "options": {
+          "displayMode": "basic",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 10,
+          "minVizWidth": 0,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "11.6.0",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "stat_rule{project_key=\"$project_key\"}",
+            "hide": false,
+            "legendFormat": "{{rule}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The frequencies of rule",
+        "transformations": [
+          {
+            "id": "limit",
+            "options": {}
+          }
+        ],
+        "type": "bargauge"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 60
+        },
+        "id": 12,
+        "panels": [],
+        "title": "Reliability",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The total number of bug issues.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 0,
+          "y": 61
+        },
+        "id": 44,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "bugs{domain=\"Reliability\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The total number of bug issues",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "- A = 0 Bugs\n- B = at least 1 Minor Bug\n- C = at least 1 Major Bug\n- D = at least 1 Critical Bug\n- E = at least 1 Blocker Bug",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "1": {
+                    "color": "dark-green",
+                    "index": 0,
+                    "text": "A"
+                  },
+                  "2": {
+                    "color": "super-light-green",
+                    "index": 1,
+                    "text": "B"
+                  },
+                  "3": {
+                    "color": "yellow",
+                    "index": 2,
+                    "text": "C"
+                  },
+                  "4": {
+                    "color": "orange",
+                    "index": 3,
+                    "text": "D"
+                  },
+                  "5": {
+                    "color": "dark-red",
+                    "index": 4,
+                    "text": "E"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 7,
+          "y": 61
+        },
+        "id": 46,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "reliability_rating{domain=\"Reliability\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Reliability Rating",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The measure is stored in minutes in the DB. An 8-hour day is assumed when values are shown in days.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "m"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 14,
+          "y": 61
+        },
+        "id": 48,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "reliability_remediation_effort{domain=\"Reliability\",project_key=\"$project_key\"}",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The effort to fix all bug issues",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 65
+        },
+        "id": 8,
+        "panels": [],
+        "title": "Maintainability",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "The total count of code smell issues.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 0,
+          "y": 66
+        },
+        "id": 36,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "code_smells{domain=\"Maintainability\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "The total count of code smell issues",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Formerly the SQALE rating.) The rating given to your project related to the value of your technical debt ratio. The default maintainability rating grid is:\n\n- A=0-0.05, B=0.06-0.1, C=0.11-0.20, D=0.21-0.5, E=0.51-1",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "from": 0,
+                  "result": {
+                    "color": "dark-green",
+                    "index": 0,
+                    "text": "A"
+                  },
+                  "to": 0.05
+                },
+                "type": "range"
+              },
+              {
+                "options": {
+                  "from": 0.06,
+                  "result": {
+                    "color": "yellow",
+                    "index": 1,
+                    "text": "B"
+                  },
+                  "to": 0.1
+                },
+                "type": "range"
+              },
+              {
+                "options": {
+                  "from": 0.11,
+                  "result": {
+                    "color": "orange",
+                    "index": 2,
+                    "text": "C"
+                  },
+                  "to": 0.2
+                },
+                "type": "range"
+              },
+              {
+                "options": {
+                  "from": 0.21,
+                  "result": {
+                    "color": "red",
+                    "index": 3,
+                    "text": "D"
+                  },
+                  "to": 0.5
+                },
+                "type": "range"
+              },
+              {
+                "options": {
+                  "from": 0.51,
+                  "result": {
+                    "color": "dark-red",
+                    "index": 4,
+                    "text": "E"
+                  },
+                  "to": 1
+                },
+                "type": "range"
+              }
+            ],
+            "thresholds": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 7,
+          "y": 66
+        },
+        "id": 38,
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sqale_rating{domain=\"Maintainability\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Maintainability Rating",
+        "type": "gauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "A measure of effort to fix all code smells. The measure is stored in minutes in the database. An 8-hour day is assumed when values are shown in days.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "m"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 14,
+          "y": 66
+        },
+        "id": 40,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "sqale_index{domain=\"Maintainability\",project_key=\"$project_key\"}",
+            "legendFormat": "{{__name__}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Technical Debt",
+        "type": "stat"
+      },
+      {
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 70
+        },
+        "id": 2,
+        "panels": [],
+        "title": "Complexity",
+        "type": "row"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Complexity / File",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 0,
+          "y": 71
+        },
+        "id": 24,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "file_complexity{domain=\"Complexity\",project_key=\"$project_key\"}",
+            "legendFormat": "{{project_key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Complexity / File",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "How hard it is to understand the code's control flow",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 7,
+          "y": 71
+        },
+        "id": 22,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "cognitive_complexity{domain=\"Complexity\",project_key=\"$project_key\"}",
+            "legendFormat": "{{project_key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Cognitive Complexity",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Complexity refers to cyclomatic complexity, a quantitative metric used to calculate the number of paths through the code.",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 7,
+          "x": 14,
+          "y": 71
+        },
+        "id": 20,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "complexity{domain=\"Complexity\",project_key=\"$project_key\"}",
+            "legendFormat": "{{project_key}}",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Cyclomatic Complexity",
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "eekvxr8u7uzuoa"
+        },
+        "description": "Project analyses events",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green"
+                }
+              ]
+            },
+            "unit": "bool_yes_no"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Value"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 23
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Time"
+              },
+              "properties": [
+                {
+                  "id": "custom.width",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 10,
+          "x": 0,
+          "y": 75
+        },
+        "id": 80,
+        "options": {
+          "footer": {
+            "enablePagination": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true,
+          "sortBy": []
+        },
+        "pluginVersion": "9.3.1",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "eekvxr8u7uzuoa"
+            },
+            "editorMode": "code",
+            "expr": "project_analyses_and_events_info{project_key=\"$project_key\"}",
+            "legendFormat": "__auto",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Project analyses events",
+        "transformations": [
+          {
+            "id": "labelsToFields",
+            "options": {
+              "keepLabels": [
+                "date",
+                "event_id",
+                "job",
+                "project_version",
+                "project_key"
+              ],
+              "mode": "columns",
+              "valueLabel": "__name__"
+            }
+          }
+        ],
+        "type": "table"
+      }
+    ],
+    "preload": false,
+    "refresh": "",
+    "schemaVersion": 41,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eekvxr8u7uzuoa"
+          },
+          "definition": "bugs",
+          "includeAll": true,
+          "label": "Project key",
+          "multi": true,
+          "name": "project_key",
+          "options": [],
+          "query": {
+            "query": "bugs",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": ".*project_key=\"([^\"]*).*",
+          "type": "query"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Sonarqube - Project Analysis Dashboard",
+    "uid": "5J-t3oc4z1",
+    "version": 11
+  }
