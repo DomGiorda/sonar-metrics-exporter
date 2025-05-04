@@ -22,6 +22,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Measures;
 import org.sonarqube.ws.client.WsConnector; // Use WsConnector interface
 import org.sonarqube.ws.client.WsClient;
+import org.sonarqube.ws.client.WsClientFactory; // Import WsClientFactory
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.ComponentsService; // Use service interface
 import org.sonarqube.ws.client.components.SearchRequest;
@@ -39,6 +40,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +56,7 @@ class PrometheusWebServiceTest {
     @Mock Response.Stream responseStream; // Mock the Stream object separately
     @Mock WsClient wsClient;
     @Mock WsConnector wsConnector;
+    @Mock WsClientFactory mockWsClientFactory; // Mock the factory returned by getLocal()
     @Mock ComponentsService componentsService; // Mock for wsClient.components()
     @Mock MeasuresService measuresService; // Mock for wsClient.measures()
     @Mock LocalConnector mockLocalConnector; // Mock the correct LocalConnector type returned by request.localConnector()
@@ -69,7 +72,6 @@ class PrometheusWebServiceTest {
     // --- Static Mocks ---
     // Needs mockito-inline dependency
     MockedStatic<WsClientFactories> mockedStaticWsClientFactories;
-    WsClientFactories wsClientFactory;
     MockedStatic<TextFormat> mockedStaticTextFormat;
 
     // --- Test Data ---
@@ -106,9 +108,9 @@ class PrometheusWebServiceTest {
         // --- Mock WsClient Factory Chain (Static Mocking) ---
         // Start static mocking for WsClientFactories
         mockedStaticWsClientFactories = Mockito.mockStatic(WsClientFactories.class);
-        wsClientFactory = Mockito.mock(WsClientFactories.class);
-        mockedStaticWsClientFactories.when(WsClientFactories::getLocal).thenReturn(wsClientFactory);
-        when(wsClientFactory.newClient(any(WsConnector.class))).thenReturn(wsClient);
+        // WsClientFactories.getLocal() returns our mock WsClientFactory
+        mockedStaticWsClientFactories.when(WsClientFactories::getLocal).thenReturn(mockWsClientFactory);
+        when(mockWsClientFactory.newClient(any(WsConnector.class))).thenReturn(wsClient); // newClient is called on WsClientFactory with LocalConnector
 
         // --- Mock WsClient Service Interfaces ---
         when(wsClient.components()).thenReturn(componentsService);
@@ -179,7 +181,7 @@ class PrometheusWebServiceTest {
         verify(responseStream).output();
 
         // Verify NO interaction with WsClient for fetching data
-        verifyNoInteractions(wsClientFactory); // Should not create client if no metrics enabled
+        verifyNoInteractions(mockWsClientFactory); // Verify on the correct factory mock
         verifyNoInteractions(componentsService); // Use correct mock name
         verifyNoInteractions(measuresService); // Use correct mock name
 
@@ -249,7 +251,7 @@ class PrometheusWebServiceTest {
 
         // --- Assert ---
         // Verify WsClient interactions (using the service interface mocks) - Corrected verification
-        verify(wsClientFactory).newClient(any(LocalConnector.class)); // Verify with correct mock
+        verify(mockWsClientFactory).newClient(any(WsConnectorJava.class)); // Verify newClient call on the WsClientFactory mock
         verify(componentsService).search(searchRequestMatcher(Qualifiers.PROJECT, "500"));
         verify(measuresService).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
         verify(measuresService).component(componentRequestMatcher(project2.getKey(), expectedMetricKeys));
