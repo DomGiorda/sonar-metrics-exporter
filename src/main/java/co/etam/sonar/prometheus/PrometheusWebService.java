@@ -48,6 +48,7 @@ public class PrometheusWebService implements WebService {
         SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS);
         SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES);
         SUPPORTED_METRICS.add(CoreMetrics.NCLOC);
+        SUPPORTED_METRICS.add(CoreMetrics.LINES);
         
     }
 
