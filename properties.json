@@ -1,19 +1,20 @@
 {
     "application": {
-      "name": "SONAR-METRICS-EXPORTER",      
+      "name": "sonar-metrics-exporter",      
       "version": "1.0.0",               
       "description": "sonar plugin for export metrics to prometheus"
     },
     "tech_stack": {
       "language": "java",             
       "language_version": "17",        
-      "framework": "spring-boot",      
-      "build_tool": "maven",           
+      "framework": "spring-boot", 
+      "build_tool": "maven",
+      "build_tool_version": "3.9.0",      
       "runtime": "jvm"                 
     },
     "build": {
       "package_type": "jar",           
-      "build_command": "mvn clean package -DskipTests", 
+      "build_command": "mvn clean install", 
       "dockerfile_path": "Dockerfile"  
     },
     "test": {
