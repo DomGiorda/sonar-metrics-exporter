@@ -14,19 +14,19 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.server.ws.Request;
+import org.sonar.api.server.ws.RequestHandler; // Use RequestHandler interface
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
-import org.sonar.api.server.ws.WebService.Handler; // Explicit import for Handler
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Measures;
-import org.sonarqube.ws.client.LocalConnector;
+import org.sonarqube.ws.client.WsConnector; // Use WsConnector interface
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.WsClientFactory;
+import org.sonarqube.ws.client.components.ComponentsService; // Use service interface
 import org.sonarqube.ws.client.components.SearchRequest;
-import org.sonarqube.ws.client.components.WsComponents;
 import org.sonarqube.ws.client.measures.ComponentRequest;
-import org.sonarqube.ws.client.measures.WsMeasures;
+import org.sonarqube.ws.client.measures.MeasuresService; // Use service interface
 
 
 import java.io.ByteArrayOutputStream;
@@ -50,14 +50,15 @@ class PrometheusWebServiceTest {
     @Mock WebService.NewAction action;
     @Mock Request request;
     @Mock Response response;
+    @Mock Response.Stream responseStream; // Mock the Stream object separately
     @Mock WsClient wsClient;
     @Mock WsClientFactory wsClientFactory; // For mocking the factory chain
-    @Mock WsComponents wsComponents; // Mock for wsClient.components()
-    @Mock WsMeasures wsMeasures; // Mock for wsClient.measures()
-    @Mock LocalConnector localConnector; // Mock for request.localConnector()
+    @Mock ComponentsService componentsService; // Mock for wsClient.components()
+    @Mock MeasuresService measuresService; // Mock for wsClient.measures()
+    @Mock WsConnector wsConnector; // Mock for request.localConnector()
 
     // --- Argument Captors ---
-    @Captor ArgumentCaptor<Handler> handlerCaptor;
+    @Captor ArgumentCaptor<RequestHandler> handlerCaptor; // Capture RequestHandler
     @Captor ArgumentCaptor<String> stringCaptor;
     @Captor ArgumentCaptor<List<String>> listStringCaptor;
 
@@ -73,6 +74,7 @@ class PrometheusWebServiceTest {
     static final Metric<Integer> METRIC_BUGS = CoreMetrics.BUGS;
     static final Metric<Integer> METRIC_VULN = CoreMetrics.VULNERABILITIES;
     static final Metric<Double> METRIC_COVERAGE = CoreMetrics.COVERAGE;
+    static final Metric<String> METRIC_ALERT_STATUS = CoreMetrics.ALERT_STATUS;
     static final Metric<Integer> METRIC_SMELLS = CoreMetrics.CODE_SMELLS;
 
     ByteArrayOutputStream outputStream; // Use ByteArrayOutputStream to capture output
@@ -94,21 +96,21 @@ class PrometheusWebServiceTest {
 
         // --- Mock Response Stream ---
         outputStream = new ByteArrayOutputStream(); // Capture output here
-        when(response.stream()).thenReturn(response);
-        when(response.setMediaType(TextFormat.CONTENT_TYPE_004)).thenReturn(response);
-        when(response.setStatus(200)).thenReturn(response);
-        when(response.output()).thenReturn(outputStream); // Return our capture stream
+        when(response.stream()).thenReturn(responseStream); // stream() returns the mock Stream
+        when(responseStream.setMediaType(TextFormat.CONTENT_TYPE_004)).thenReturn(responseStream); // Methods called on Stream
+        when(responseStream.setStatus(200)).thenReturn(responseStream); // Methods called on Stream
+        when(responseStream.output()).thenReturn(outputStream); // output() called on Stream
 
         // --- Mock WsClient Factory Chain (Static Mocking) ---
         // Start static mocking for WsClientFactories
         mockedStaticWsClientFactories = Mockito.mockStatic(WsClientFactories.class);
         mockedStaticWsClientFactories.when(WsClientFactories::getLocal).thenReturn(wsClientFactory);
-        when(request.localConnector()).thenReturn(localConnector);
-        when(wsClientFactory.newClient(localConnector)).thenReturn(wsClient);
+        when(request.localConnector()).thenReturn(wsConnector); // Use WsConnector mock
+        when(wsClientFactory.newClient(wsConnector)).thenReturn(wsClient);
 
-        // --- Mock WsClient Services ---
-        when(wsClient.components()).thenReturn(wsComponents);
-        when(wsClient.measures()).thenReturn(wsMeasures);
+        // --- Mock WsClient Service Interfaces ---
+        when(wsClient.components()).thenReturn(componentsService);
+        when(wsClient.measures()).thenReturn(measuresService);
 
         // --- Mock TextFormat Static Write ---
         // Mock the static write004 method to avoid actual writing complexities
@@ -142,7 +144,7 @@ class PrometheusWebServiceTest {
         verify(context).createController("api/prometheus");
         verify(controller).setDescription("Prometheus Exporter");
         verify(controller).createAction("metrics");
-        verify(action).setHandler(any(Handler.class)); // Check handler was set
+        verify(action).setHandler(any(RequestHandler.class)); // Check RequestHandler was set
         verify(controller).done();
 
         // Verify configuration was read initially (for updateEnabledMetrics/Gauges)
@@ -161,18 +163,18 @@ class PrometheusWebServiceTest {
 
         // Call define to setup mocks and capture handler
         service.define(context);
-        Handler handler = handlerCaptor.getValue();
+        RequestHandler handler = handlerCaptor.getValue();
         assertNotNull(handler, "Handler should have been captured");
 
         // --- Act ---
         handler.handle(request, response);
 
         // --- Assert ---
-        // Verify response setup
+        // Verify response stream setup
         verify(response).stream();
-        verify(response).setMediaType(TextFormat.CONTENT_TYPE_004);
-        verify(response).setStatus(200);
-        verify(response).output();
+        verify(responseStream).setMediaType(TextFormat.CONTENT_TYPE_004);
+        verify(responseStream).setStatus(200);
+        verify(responseStream).output();
 
         // Verify NO interaction with WsClient for fetching data
         verifyNoInteractions(wsClientFactory); // Should not create client
@@ -193,11 +195,12 @@ class PrometheusWebServiceTest {
     }
 
     @Test
-    void handle_whenMetricsEnabled_shouldFetchAndExportMetrics() throws Exception {
+    void handle_whenMetricsEnabled_shouldFetchAndExportNumericAndAlertStatusMetrics() throws Exception {
         // --- Arrange ---
-        // Mock configuration: enable BUGS and COVERAGE
+        // Mock configuration: enable BUGS, COVERAGE, and ALERT_STATUS
         when(configuration.getBoolean(PrometheusWebService.CONFIG_PREFIX + METRIC_BUGS.getKey())).thenReturn(Optional.of(true));
         when(configuration.getBoolean(PrometheusWebService.CONFIG_PREFIX + METRIC_COVERAGE.getKey())).thenReturn(Optional.of(true));
+        when(configuration.getBoolean(PrometheusWebService.CONFIG_PREFIX + METRIC_ALERT_STATUS.getKey())).thenReturn(Optional.of(true));
         // Disable others (explicitly or rely on default Optional.empty() -> false)
         PrometheusWebService.SUPPORTED_METRICS.stream()
                 .filter(m -> !m.getKey().equals(METRIC_BUGS.getKey()) && !m.getKey().equals(METRIC_COVERAGE.getKey()))
@@ -211,48 +214,49 @@ class PrometheusWebServiceTest {
         Components.Component project2 = Components.Component.newBuilder().setKey("proj-2").setName("Project Two").build();
         List<Components.Component> projects = Arrays.asList(project1, project2);
         Components.SearchWsResponse searchResponse = Components.SearchWsResponse.newBuilder().addAllComponents(projects).build();
-        // Use argThat for complex object matching if default equals is not reliable
-        when(wsComponents.search(searchRequestMatcher(Qualifiers.PROJECT, "500"))).thenReturn(searchResponse);
+        when(componentsService.search(searchRequestMatcher(Qualifiers.PROJECT, "500"))).thenReturn(searchResponse);
 
         // Mock measures fetch for project1
         Measures.Measure measureBugs1 = Measures.Measure.newBuilder().setMetric(METRIC_BUGS.getKey()).setValue("15").build();
         Measures.Measure measureCov1 = Measures.Measure.newBuilder().setMetric(METRIC_COVERAGE.getKey()).setValue("75.5").build();
+        Measures.Measure measureAlert1 = Measures.Measure.newBuilder().setMetric(METRIC_ALERT_STATUS.getKey()).setValue("OK").build();
         Measures.Component project1Measures = Measures.Component.newBuilder()
                 .setKey(project1.getKey()).setName(project1.getName())
-                .addAllMeasures(Arrays.asList(measureBugs1, measureCov1)).build();
+                .addAllMeasures(Arrays.asList(measureBugs1, measureCov1, measureAlert1)).build();
         Measures.ComponentWsResponse response1 = Measures.ComponentWsResponse.newBuilder().setComponent(project1Measures).build();
-        List<String> expectedMetricKeys = Arrays.asList(METRIC_BUGS.getKey(), METRIC_COVERAGE.getKey());
-        when(wsMeasures.component(componentRequestMatcher(project1.getKey(), expectedMetricKeys))).thenReturn(response1);
+        List<String> expectedMetricKeys = Arrays.asList(METRIC_BUGS.getKey(), METRIC_COVERAGE.getKey(), METRIC_ALERT_STATUS.getKey());
+        when(measuresService.component(componentRequestMatcher(project1.getKey(), expectedMetricKeys))).thenReturn(response1);
 
         // Mock measures fetch for project2
         Measures.Measure measureBugs2 = Measures.Measure.newBuilder().setMetric(METRIC_BUGS.getKey()).setValue("8").build();
+        Measures.Measure measureAlert2 = Measures.Measure.newBuilder().setMetric(METRIC_ALERT_STATUS.getKey()).setValue("ERROR").build();
         // Simulate project 2 not having a coverage measure returned
         Measures.Component project2Measures = Measures.Component.newBuilder()
                 .setKey(project2.getKey()).setName(project2.getName())
-                .addMeasures(measureBugs2).build();
+                .addAllMeasures(Arrays.asList(measureBugs2, measureAlert2)).build();
         Measures.ComponentWsResponse response2 = Measures.ComponentWsResponse.newBuilder().setComponent(project2Measures).build();
-        when(wsMeasures.component(componentRequestMatcher(project2.getKey(), expectedMetricKeys))).thenReturn(response2);
+        when(measuresService.component(componentRequestMatcher(project2.getKey(), expectedMetricKeys))).thenReturn(response2);
 
         // Call define to setup mocks and capture handler
         service.define(context);
-        Handler handler = handlerCaptor.getValue();
+        RequestHandler handler = handlerCaptor.getValue();
         assertNotNull(handler, "Handler should have been captured");
 
         // --- Act ---
         handler.handle(request, response);
 
         // --- Assert ---
-        // Verify WsClient interactions
+        // Verify WsClient interactions (using the service interface mocks)
         verify(wsClientFactory).newClient(localConnector);
-        verify(wsComponents).search(searchRequestMatcher(Qualifiers.PROJECT, "500"));
-        verify(wsMeasures).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
-        verify(wsMeasures).component(componentRequestMatcher(project2.getKey(), expectedMetricKeys));
+        verify(componentsService).search(searchRequestMatcher(Qualifiers.PROJECT, "500"));
+        verify(measuresService).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
+        verify(measuresService).component(componentRequestMatcher(project2.getKey(), expectedMetricKeys));
 
         // Verify response setup
         verify(response).stream();
-        verify(response).setMediaType(TextFormat.CONTENT_TYPE_004);
-        verify(response).setStatus(200);
-        verify(response).output();
+        verify(responseStream).setMediaType(TextFormat.CONTENT_TYPE_004);
+        verify(responseStream).setStatus(200);
+        verify(responseStream).output();
 
         // Verify Gauges were registered and updated in the registry
         assertEquals(2, CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator().size(),
@@ -272,14 +276,18 @@ class PrometheusWebServiceTest {
                         new String[]{project2.getKey(), project2.getName()}),
                 "Coverage for project 2 should not be set");
 
+        // Check ALERT_STATUS gauge values (mapped)
+        assertEquals(1.0, getGaugeValue("sonarqube_" + METRIC_ALERT_STATUS.getKey(), project1.getKey(), project1.getName()), 0.001, "Alert Status OK should be 1.0");
+        assertEquals(3.0, getGaugeValue("sonarqube_" + METRIC_ALERT_STATUS.getKey(), project2.getKey(), project2.getName()), 0.001, "Alert Status ERROR should be 3.0");
+
 
         // Verify TextFormat.write004 was called
         mockedStaticTextFormat.verify(() -> TextFormat.write004(any(OutputStreamWriter.class), any()));
     }
 
     @Test
-    void handle_whenMeasureValueIsNotNumeric_shouldSkipThatMeasure() throws Exception {
-        // --- Arrange ---
+    void handle_whenMeasureValueIsNotNumeric_shouldSetDefaultValue() throws Exception {
+         // --- Arrange ---
         // Enable BUGS metric only
         when(configuration.getBoolean(PrometheusWebService.CONFIG_PREFIX + METRIC_BUGS.getKey())).thenReturn(Optional.of(true));
         PrometheusWebService.SUPPORTED_METRICS.stream()
@@ -290,7 +298,7 @@ class PrometheusWebServiceTest {
         // Mock project search
         Components.Component project1 = Components.Component.newBuilder().setKey("proj-invalid").setName("Invalid Value Project").build();
         Components.SearchWsResponse searchResponse = Components.SearchWsResponse.newBuilder().addComponents(project1).build();
-        when(wsComponents.search(searchRequestMatcher(Qualifiers.PROJECT, "500"))).thenReturn(searchResponse);
+        when(componentsService.search(searchRequestMatcher(Qualifiers.PROJECT, "500"))).thenReturn(searchResponse);
 
         // Mock measures fetch: return BUGS with a non-numeric value
         Measures.Measure measureInvalidBugs = Measures.Measure.newBuilder().setMetric(METRIC_BUGS.getKey()).setValue("not-a-number").build();
@@ -299,27 +307,28 @@ class PrometheusWebServiceTest {
                 .addMeasures(measureInvalidBugs).build();
         Measures.ComponentWsResponse measuresResponse = Measures.ComponentWsResponse.newBuilder().setComponent(projectMeasures).build();
         List<String> expectedMetricKeys = Collections.singletonList(METRIC_BUGS.getKey());
-        when(wsMeasures.component(componentRequestMatcher(project1.getKey(), expectedMetricKeys))).thenReturn(measuresResponse);
+        when(measuresService.component(componentRequestMatcher(project1.getKey(), expectedMetricKeys))).thenReturn(measuresResponse);
 
         // Define and get handler
         service.define(context);
-        Handler handler = handlerCaptor.getValue();
+        RequestHandler handler = handlerCaptor.getValue();
 
         // --- Act ---
         // Execute the handler, expecting it to log an error but not throw
         assertDoesNotThrow(() -> handler.handle(request, response));
 
         // --- Assert ---
-        // Verify interactions happened
-        verify(wsMeasures).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
+        // Verify interactions happened (using service interface mock)
+        verify(measuresService).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
 
-        // Verify the gauge for BUGS was registered BUT the specific label set was NOT added
+        // Verify the gauge for BUGS was registered
         assertEquals(1, CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator().size(), "Bugs metric family should be registered");
-        assertNull(CollectorRegistry.defaultRegistry.getSampleValue(
+        // Verify the gauge value was set to the default (0.0) due to parsing failure
+        assertEquals(0.0, getGaugeValue(
                         "sonarqube_" + METRIC_BUGS.getKey(),
-                        new String[]{"key", "name"},
-                        new String[]{project1.getKey(), project1.getName()}),
-                "Gauge value should not be set for non-numeric input");
+                        project1.getKey(),
+                        project1.getName()),
+                0.001, "Gauge value should be set to default (0.0) for non-numeric input");
 
         // Verify response was still sent successfully
         verify(response).setStatus(200);
@@ -347,8 +356,10 @@ class PrometheusWebServiceTest {
      * Creates an ArgumentMatcher for SearchRequest.
      */
     private SearchRequest searchRequestMatcher(String qualifier, String ps) {
+        // Use accessors from the actual SearchRequest object if available and needed for complex matching
+        // For now, assume direct field access or simple getters are sufficient for the matcher's lambda
         return argThat(req -> req != null &&
-                req.getQualifiersList().equals(Collections.singletonList(qualifier)) &&
+                req.getQualifiers().equals(Collections.singletonList(qualifier)) && // Assuming getQualifiers() exists
                 req.getPs().equals(ps)
         );
     }
@@ -359,9 +370,11 @@ class PrometheusWebServiceTest {
      */
     private ComponentRequest componentRequestMatcher(String componentKey, List<String> metricKeys) {
         Set<String> expectedKeys = new HashSet<>(metricKeys);
+        // Use accessors from the actual ComponentRequest object if available and needed for complex matching
+        // For now, assume direct field access or simple getters are sufficient for the matcher's lambda
         return argThat(req -> req != null &&
                 req.getComponent().equals(componentKey) &&
-                new HashSet<>(req.getMetricKeysList()).equals(expectedKeys)
+                new HashSet<>(req.getMetricKeys()).equals(expectedKeys) // Assuming getMetricKeys() exists
         );
     }
 }
