@@ -6,7 +6,7 @@
     <groupId>co.etam</groupId>
     <artifactId>sonar-prometheus-exporter</artifactId>
     <packaging>sonar-plugin</packaging>
-    <version>1.0.0-LOCAL</version>
+    <version>1.0.0-SNAPSHOT</version>
     <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
     <licenses>
         <license>
