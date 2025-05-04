@@ -14,7 +14,7 @@
     },
     "build": {
       "package_type": "jar",           
-      "build_command": "mvn clean install", 
+      "build_command": "clean install", 
       "dockerfile_path": "Dockerfile"  
     },
     "test": {
