@@ -1,0 +1,60 @@
+{
+    "application": {
+      "name": "SONAR-METRICS-EXPORTER",      
+      "version": "1.0.0",               
+      "description": "sonar plugin for export metrics to prometheus"
+    },
+    "tech_stack": {
+      "language": "java",             
+      "language_version": "17",        
+      "framework": "spring-boot",      
+      "build_tool": "maven",           
+      "runtime": "jvm"                 
+    },
+    "build": {
+      "package_type": "jar",           
+      "build_command": "mvn clean package -DskipTests", 
+      "dockerfile_path": "Dockerfile"  
+    },
+    "test": {
+      "run_tests": true,               
+      "test_command": "mvn test",      
+      "coverage_tool": "jacoco",       
+      "quality_gate": {               
+        "enabled": true,
+        "tool": "sonarqube",
+        "project_key": "SONAR-METRICS-EXPORTER"
+      }
+    },
+    "artifacts": {
+      "publish_artifact": true,         
+      "repository_type": "maven",       
+      "repository_url": "https://your-artifact-repo.com/repository/maven-releases",
+      "credential_id": "jenkins-artifact-repo-credential-id"
+    },
+    "deployment": {
+      "deploy": false,                  
+      "target": "sonar-instance",          
+      "cloud_provider": "local",         
+      "service_type": "devops-tool",          
+      "mechanism": "sh",             
+      "manifest_path": "sh/scripts/deploy-plugin.sh", 
+      "credential_id": "jenkins-deployment-credential-id", 
+      "environment_vars": {           
+          "SPRING_PROFILES_ACTIVE": "dev"
+      }
+    },
+    "configuration": {
+      "method": "ssh-config",
+      "path": "sh/config"       
+    },
+    "health_check": {
+      "endpoint": "/api/prometheus/metrics",    
+      "method": "http_get",            
+      "port": 9000                 
+    },
+    "notifications": {
+      "on_success": ["email:dev-team@example.com", "slack:#success-channel"],
+      "on_failure": ["email:ops-team@example.com", "slack:#alerts-channel"]
+    }
+  }

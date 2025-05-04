@@ -6,7 +6,7 @@
     <groupId>co.etam</groupId>
     <artifactId>sonar-prometheus-exporter</artifactId>
     <packaging>sonar-plugin</packaging>
-    <version>1.0.0-LOCAL</version>
+    <version>1.0.0-SNAPSHOT</version>
     <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
     <licenses>
         <license>
@@ -33,6 +33,30 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.sonarsource.api.plugin</groupId>
             <artifactId>sonar-plugin-api</artifactId>
