@@ -84,7 +84,19 @@ public class PrometheusWebService implements WebService {
 
                             if (this.gauges.containsKey(measure.getMetric())) {
 
-                                this.gauges.get(measure.getMetric()).labels(project.getKey(), project.getName()).set(Double.valueOf(measure.getValue()));
+                                Gauge gauge = this.gauges.get(measure.getMetric());
+                                String metricKey = measure.getMetric();
+                                String valueStr = measure.getValue();
+                                double valueDouble;
+
+                                if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
+                                    // Map Quality Gate status string to numeric value
+                                    valueDouble = mapAlertStatusToDouble(valueStr);
+                                } else {
+                                    // Attempt to parse other metrics as Double
+                                    valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
+                                }
+                                gauge.labels(project.getKey(), project.getName()).set(valueDouble);
                             }
                         });
                     });
@@ -145,5 +157,30 @@ public class PrometheusWebService implements WebService {
             .setQualifiers(Collections.singletonList(Qualifiers.PROJECT))
             .setPs("500"))
             .getComponentsList();
+    }
+
+
+    private double mapAlertStatusToDouble(String status) {
+        if (status == null) {
+            return 0.0;
+        }
+        switch (status.toUpperCase()) {
+            case "OK": return 1.0;
+            case "WARN": return 2.0;
+            case "ERROR": return 3.0;
+            default: return 0.0; // Unknown or unexpected status
+        }
+    }
+
+    /**
+     * Safely parses a String to a Double, returning a default value if parsing fails.
+     */
+    private double parseDoubleOrDefault(String value, double defaultValue) {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException | NullPointerException e) {
+            // Log potentially? For now, return default.
+            return defaultValue;
+        }
     }
 }
