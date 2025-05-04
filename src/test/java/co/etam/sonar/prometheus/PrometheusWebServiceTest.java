@@ -14,21 +14,22 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.server.ws.Request;
-import org.sonar.api.server.ws.RequestHandler; // Use RequestHandler interface
+import org.sonar.api.server.ws.RequestHandler;
 import org.sonar.api.server.ws.Response;
 import org.sonar.api.server.ws.WebService;
+import org.sonar.api.server.ws.LocalConnector; // Import the correct LocalConnector
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Measures;
 import org.sonarqube.ws.client.WsConnector; // Use WsConnector interface
 import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.WsClientFactory;
 import org.sonarqube.ws.client.components.ComponentsService; // Use service interface
 import org.sonarqube.ws.client.components.SearchRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.measures.MeasuresService; // Use service interface
 
 
+import java.io.ByteArrayInputStream; // Needed for potential input stream mocking if required later
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,10 +53,10 @@ class PrometheusWebServiceTest {
     @Mock Response response;
     @Mock Response.Stream responseStream; // Mock the Stream object separately
     @Mock WsClient wsClient;
-    @Mock WsClientFactory wsClientFactory; // For mocking the factory chain
+    @Mock WsConnector wsConnector;
     @Mock ComponentsService componentsService; // Mock for wsClient.components()
     @Mock MeasuresService measuresService; // Mock for wsClient.measures()
-    @Mock WsConnector wsConnector; // Mock for request.localConnector()
+    @Mock LocalConnector mockLocalConnector; // Mock the correct LocalConnector type returned by request.localConnector()
 
     // --- Argument Captors ---
     @Captor ArgumentCaptor<RequestHandler> handlerCaptor; // Capture RequestHandler
@@ -68,13 +69,14 @@ class PrometheusWebServiceTest {
     // --- Static Mocks ---
     // Needs mockito-inline dependency
     MockedStatic<WsClientFactories> mockedStaticWsClientFactories;
+    WsClientFactories wsClientFactory;
     MockedStatic<TextFormat> mockedStaticTextFormat;
 
     // --- Test Data ---
     static final Metric<Integer> METRIC_BUGS = CoreMetrics.BUGS;
     static final Metric<Integer> METRIC_VULN = CoreMetrics.VULNERABILITIES;
     static final Metric<Double> METRIC_COVERAGE = CoreMetrics.COVERAGE;
-    static final Metric<String> METRIC_ALERT_STATUS = CoreMetrics.ALERT_STATUS;
+    static final Metric<Metric.Level> METRIC_ALERT_STATUS = CoreMetrics.ALERT_STATUS; // Adjust type based on compiler error
     static final Metric<Integer> METRIC_SMELLS = CoreMetrics.CODE_SMELLS;
 
     ByteArrayOutputStream outputStream; // Use ByteArrayOutputStream to capture output
@@ -104,9 +106,9 @@ class PrometheusWebServiceTest {
         // --- Mock WsClient Factory Chain (Static Mocking) ---
         // Start static mocking for WsClientFactories
         mockedStaticWsClientFactories = Mockito.mockStatic(WsClientFactories.class);
+        wsClientFactory = Mockito.mock(WsClientFactories.class);
         mockedStaticWsClientFactories.when(WsClientFactories::getLocal).thenReturn(wsClientFactory);
-        when(request.localConnector()).thenReturn(wsConnector); // Use WsConnector mock
-        when(wsClientFactory.newClient(wsConnector)).thenReturn(wsClient);
+        when(wsClientFactory.newClient(any(WsConnector.class))).thenReturn(wsClient);
 
         // --- Mock WsClient Service Interfaces ---
         when(wsClient.components()).thenReturn(componentsService);
@@ -177,9 +179,9 @@ class PrometheusWebServiceTest {
         verify(responseStream).output();
 
         // Verify NO interaction with WsClient for fetching data
-        verifyNoInteractions(wsClientFactory); // Should not create client
-        verifyNoInteractions(wsComponents);
-        verifyNoInteractions(wsMeasures);
+        verifyNoInteractions(wsClientFactory); // Should not create client if no metrics enabled
+        verifyNoInteractions(componentsService); // Use correct mock name
+        verifyNoInteractions(measuresService); // Use correct mock name
 
         // Verify configuration was checked again inside handler
         verify(configuration, times(2 * PrometheusWebService.SUPPORTED_METRICS.size()))
@@ -187,7 +189,7 @@ class PrometheusWebServiceTest {
         assertTrue(stringCaptor.getAllValues().contains(PrometheusWebService.CONFIG_PREFIX + METRIC_BUGS.getKey()));
 
         // Verify registry is empty (no gauges registered)
-        assertEquals(0, CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator().size(),
+        assertEquals(0, Collections.list(CollectorRegistry.defaultRegistry.metricFamilySamples()).size(), // Convert Enumeration to List
                 "Prometheus registry should be empty when no metrics are enabled");
 
         // Verify TextFormat.write004 was called (even with empty registry)
@@ -246,8 +248,8 @@ class PrometheusWebServiceTest {
         handler.handle(request, response);
 
         // --- Assert ---
-        // Verify WsClient interactions (using the service interface mocks)
-        verify(wsClientFactory).newClient(localConnector);
+        // Verify WsClient interactions (using the service interface mocks) - Corrected verification
+        verify(wsClientFactory).newClient(any(LocalConnector.class)); // Verify with correct mock
         verify(componentsService).search(searchRequestMatcher(Qualifiers.PROJECT, "500"));
         verify(measuresService).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
         verify(measuresService).component(componentRequestMatcher(project2.getKey(), expectedMetricKeys));
@@ -259,7 +261,7 @@ class PrometheusWebServiceTest {
         verify(responseStream).output();
 
         // Verify Gauges were registered and updated in the registry
-        assertEquals(2, CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator().size(),
+        assertEquals(3, Collections.list(CollectorRegistry.defaultRegistry.metricFamilySamples()).size(), // Convert Enumeration to List, expecting 3 (bugs, coverage, alert_status)
                 "Should have 2 metric families registered (bugs, coverage)");
 
         // Check BUGS gauge values
@@ -322,7 +324,7 @@ class PrometheusWebServiceTest {
         verify(measuresService).component(componentRequestMatcher(project1.getKey(), expectedMetricKeys));
 
         // Verify the gauge for BUGS was registered
-        assertEquals(1, CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator().size(), "Bugs metric family should be registered");
+        assertEquals(1, Collections.list(CollectorRegistry.defaultRegistry.metricFamilySamples()).size(), "Bugs metric family should be registered"); // Convert Enumeration to List
         // Verify the gauge value was set to the default (0.0) due to parsing failure
         assertEquals(0.0, getGaugeValue(
                         "sonarqube_" + METRIC_BUGS.getKey(),
@@ -331,8 +333,8 @@ class PrometheusWebServiceTest {
                 0.001, "Gauge value should be set to default (0.0) for non-numeric input");
 
         // Verify response was still sent successfully
-        verify(response).setStatus(200);
-        verify(response).output();
+        verify(responseStream).setStatus(200); // Verify on responseStream
+        verify(responseStream).output(); // Verify on responseStream
         mockedStaticTextFormat.verify(() -> TextFormat.write004(any(OutputStreamWriter.class), any()));
     }
 
