@@ -21,7 +21,8 @@
       "run_tests": true,               
       "test_command": "mvn test",      
       "coverage_tool": "jacoco",       
-      "quality_gate": {               
+      "quality_gate": {
+        "sonar_properties": "sonar-project.properties",
         "enabled": true,
         "tool": "sonarqube",
         "project_key": "SONAR-METRICS-EXPORTER"
