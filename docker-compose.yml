@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  sonarqube:
+    # Default image points to SonarQube 10.8 Community; change the image tag if you need a different version.
+    image: sonarqube:25.10.0.114319-community
+    container_name: sonar
+    ports:
+      - "9000:9000"
+    environment:
+      # Increase memory if you hit startup issues; defaults are usually fine for local testing
+      - SONAR_JDBC_USERNAME=
+      - SONAR_JDBC_PASSWORD=
+    volumes:
+      # Mount a host directory for plugins. Copy your built plugin jar into ./plugins (or link the target jar)
+      - ./plugins:/opt/sonarqube/extensions/plugins
+      # Persist data between restarts (optional)
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./resources/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_temp:
+  prometheus_data:

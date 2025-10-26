@@ -6,7 +6,7 @@
     <groupId>co.etam</groupId>
     <artifactId>sonar-prometheus-exporter</artifactId>
     <packaging>sonar-plugin</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
     <licenses>
         <license>
@@ -27,7 +27,11 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar.apiVersion>9.14.0.375</sonar.apiVersion>
+        <!-- Target SonarQube API version for compilation. Updated to 10.8 as requested. -->
+        <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
+        <!-- Pin plugin API at the maximum supported version you provided. This
+         property is used only for the sonar-plugin-api artifact. -->
+        <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
         <jdk.min.version>17</jdk.min.version>
         <sonar.sources>src/main/java</sonar.sources>
     </properties>
@@ -57,16 +61,17 @@
             <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.sonarsource.api.plugin</groupId>
+       <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
-            <version>9.14.0.375</version>
-            <scope>provided</scope>
+            <version>${sonar.pluginApiVersion}</version>
+          <scope>provided</scope>
         </dependency>
+        <!-- Align sonar-ws to the SonarQube version; update as needed if exact patch version required -->
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-ws</artifactId>
-            <version>9.9.9.104369</version>
+            <version>${sonar.apiVersion}</version>
         </dependency>
         <dependency>
             <groupId>io.prometheus</groupId>

@@ -83,21 +83,35 @@ public class PrometheusWebService implements WebService {
 
                         wsResponse.getComponent().getMeasuresList().forEach(measure -> {
 
-                            if (this.gauges.containsKey(measure.getMetric())) {
+                            String metricKey = measure.getMetric();
+                            String valueStr = measure.getValue();
+                            double valueDouble;
 
-                                Gauge gauge = this.gauges.get(measure.getMetric());
-                                String metricKey = measure.getMetric();
-                                String valueStr = measure.getValue();
-                                double valueDouble;
+                            if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
+                                // Map Quality Gate status string to numeric value
+                                valueDouble = mapAlertStatusToDouble(valueStr);
+                            } else {
+                                // Attempt to parse other metrics as Double
+                                valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
+                            }
 
-                                if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
-                                    // Map Quality Gate status string to numeric value
-                                    valueDouble = mapAlertStatusToDouble(valueStr);
-                                } else {
-                                    // Attempt to parse other metrics as Double
-                                    valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
-                                }
-                                gauge.labels(project.getKey(), project.getName()).set(valueDouble);
+                            // Determine severity label from the metric key (e.g. "blocker_violations").
+                            String severity = determineSeverityFromMetricKey(metricKey);
+
+                            if (this.gauges.containsKey(metricKey)) {
+                                // Pre-registered gauge (from enabledMetrics)
+                                Gauge gauge = this.gauges.get(metricKey);
+                                gauge.labels(project.getKey(), project.getName(), severity).set(valueDouble);
+                            } else {
+                                // Dynamically register a gauge for unexpected/severity-specific metric keys
+                                Gauge dynamicGauge = Gauge.build()
+                                        .name(METRIC_PREFIX + metricKey)
+                                        .help("Metric exported from Sonar: " + metricKey)
+                                        .labelNames("key", "name", "severity")
+                                        .register();
+
+                                this.gauges.put(metricKey, dynamicGauge);
+                                dynamicGauge.labels(project.getKey(), project.getName(), severity).set(valueDouble);
                             }
                         });
                     });
@@ -134,10 +148,17 @@ public class PrometheusWebService implements WebService {
 
         CollectorRegistry.defaultRegistry.clear();
 
+        // Clear the local map so we re-register gauges on each configuration refresh
+        this.gauges.clear();
+
+        // Register gauges for explicitly enabled metrics. Add a "severity" label so
+        // Grafana can filter/group by severity (BLOCKER, CRITICAL, etc.). If Sonar
+        // returns additional severity-specific metric keys we will dynamically
+        // register gauges for them when handling measures.
         this.enabledMetrics.forEach(metric -> gauges.put(metric.getKey(), Gauge.build()
             .name(METRIC_PREFIX + metric.getKey())
             .help(metric.getDescription())
-            .labelNames("key", "name")
+            .labelNames("key", "name", "severity")
             .register()));
     }
 
@@ -183,5 +204,24 @@ public class PrometheusWebService implements WebService {
             // Log potentially? For now, return default.
             return defaultValue;
         }
+    }
+
+    /**
+     * Try to infer a severity label from the metric key. Common Sonar metric keys
+     * include severity text like "blocker", "critical", "major", "minor",
+     * or "info" in their name (for example "blocker_violations"). Return a
+     * canonical uppercase severity name or "ALL" when none can be detected.
+     */
+    private String determineSeverityFromMetricKey(String metricKey) {
+        if (metricKey == null) {
+            return "ALL";
+        }
+        String lower = metricKey.toLowerCase(Locale.ROOT);
+        if (lower.contains("blocker")) return "BLOCKER";
+        if (lower.contains("critical")) return "CRITICAL";
+        if (lower.contains("major")) return "MAJOR";
+        if (lower.contains("minor")) return "MINOR";
+        if (lower.contains("info")) return "INFO";
+        return "ALL";
     }
 }

@@ -4,12 +4,12 @@ name: Build Plugin
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feature/*", "develop" ]
   pull_request:
     branches: [ "main" ]
 
 permissions:
-  contents: read # Allow checkout
+  contents: write # Allow checkout
 
 jobs:
   build:
@@ -27,12 +27,42 @@ jobs:
           distribution: 'temurin'
           cache: 'maven' # Cache Maven dependencies
 
+      - name: Dependency check
+        run: mvn dependency:resolve --file pom.xml
+        
+      - name: Test plugin
+        id: test 
+        run: mvn test --file pom.xml
+
       - name: Build with Maven
+        id: build
+        if: steps.test.outcome == 'success'
         # The -B flag enables batch mode
-        run: mvn -B package --file pom.xml
+        run: mvn clean -DskipTests package --file pom.xml
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: sonar-metrics-exporter-plugin # You can customize the artifact name
           path: target/*.jar # Assumes the JAR is in the target directory
+      
+      - name: Update pom version for next development iteration
+        if: github.ref == 'refs/heads/main' && steps.build.outcome == 'success' || github.ref == 'refs/heads/develop' && steps.build.outcome == 'success'
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            mvn build-helper:parse-version versions:set \
+            -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1)) \
+            versions:commit --file pom.xml
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            mvn build-helper:parse-version versions:set \
+              -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1))-SNAPSHOT \
+              versions:commit --file pom.xml
+          fi
+
+      - name: Create Release and upload artifact
+        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

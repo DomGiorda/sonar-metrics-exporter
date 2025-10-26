@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: 'sonarqube'
+    metrics_path: '/api/prometheus/metrics'
+    static_configs:
+      - targets: ['sonarqube:9000']
+    # Optional: add labels so it's easy to filter in Prometheus/Grafana
+    metrics_path: /api/prometheus/metrics
+    relabel_configs: []
