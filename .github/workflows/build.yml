@@ -47,6 +47,7 @@ jobs:
           path: target/*.jar # Assumes the JAR is in the target directory
       
       - name: Update pom version for next development iteration
+        id: update_version
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && steps.build.outcome == 'success'
         run: |
           set -euo pipefail
@@ -74,11 +75,13 @@ jobs:
 
           echo "Setting new version: ${NEW_VERSION}"
           mvn build-helper:parse-version versions:set -DnewVersion="${NEW_VERSION}" versions:commit --file pom.xml
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT 
 
       - name: Create Release and upload artifact
         if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
         uses: softprops/action-gh-release@v1
         with:
           files: target/*.jar
+          tag_name: v${{ steps.update_version.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
