@@ -34,7 +34,7 @@ jobs:
       - name: Build with Maven
         if: steps.test.outcome == 'success'
         # The -B flag enables batch mode
-        run: mvn -DskipTests package --file pom.xml
+        run: mvn clean -DskipTests package --file pom.xml
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
