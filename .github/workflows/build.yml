@@ -4,7 +4,7 @@ name: Build Plugin
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feature/*", "develop" ]
   pull_request:
     branches: [ "main" ]
 
