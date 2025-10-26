@@ -9,7 +9,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read # Allow checkout
+  contents: write # Allow checkout
 
 jobs:
   build:
@@ -26,6 +26,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven' # Cache Maven dependencies
+
       - name: Dependency check
         run: mvn dependency:resolve --file pom.xml
         
@@ -43,3 +44,18 @@ jobs:
         with:
           name: sonar-metrics-exporter-plugin # You can customize the artifact name
           path: target/*.jar # Assumes the JAR is in the target directory
+      
+      - name: Update pom version for next development iteration
+        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
+        run: |
+          mvn build-helper:parse-version versions:set \
+            -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1)) \
+            versions:commit --file pom.xml
+
+      - name: Create Release and upload artifact
+        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
