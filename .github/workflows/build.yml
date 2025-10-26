@@ -26,8 +26,13 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven' # Cache Maven dependencies
+      
+      - name: Test plugin
+        id: test 
+        run: mvn test --file pom.xml
 
       - name: Build with Maven
+        if: steps.test.outcome == 'success'
         # The -B flag enables batch mode
         run: mvn -DskipTests package --file pom.xml
 
