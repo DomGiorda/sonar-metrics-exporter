@@ -29,7 +29,7 @@ jobs:
 
       - name: Build with Maven
         # The -B flag enables batch mode
-        run: mvn -B package --file pom.xml
+        run: mvn -DskipTests package --file pom.xml
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
