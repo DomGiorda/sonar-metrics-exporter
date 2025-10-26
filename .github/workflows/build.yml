@@ -47,17 +47,33 @@ jobs:
           path: target/*.jar # Assumes the JAR is in the target directory
       
       - name: Update pom version for next development iteration
-        if: github.ref == 'refs/heads/main' && steps.build.outcome == 'success' || github.ref == 'refs/heads/develop' && steps.build.outcome == 'success'
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && steps.build.outcome == 'success'
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            mvn build-helper:parse-version versions:set \
-            -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1)) \
-            versions:commit --file pom.xml
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            mvn build-helper:parse-version versions:set \
-              -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1))-SNAPSHOT \
-              versions:commit --file pom.xml
+          set -euo pipefail
+          echo "Determining branch from GITHUB_REF=${GITHUB_REF}"
+          # Determine desired suffix based on branch
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            SUFFIX=""
+          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            SUFFIX="-SNAPSHOT"
+          else
+            echo "Not on main/develop, skipping version bump"
+            exit 0
           fi
+
+          # Resolve current project version using Maven
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: ${CURRENT_VERSION}"
+
+          # Remove -SNAPSHOT suffix from base version if present
+          BASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
+          PATCH=${PATCH:-0}
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}${SUFFIX}"
+
+          echo "Setting new version: ${NEW_VERSION}"
+          mvn build-helper:parse-version versions:set -DnewVersion="${NEW_VERSION}" versions:commit --file pom.xml
 
       - name: Create Release and upload artifact
         if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
