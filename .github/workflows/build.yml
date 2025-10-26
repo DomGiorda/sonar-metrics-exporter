@@ -4,12 +4,12 @@ name: Build Plugin
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feature/*", "develop" ]
   pull_request:
     branches: [ "main" ]
 
 permissions:
-  contents: read # Allow checkout
+  contents: write # Allow checkout
 
 jobs:
   build:
@@ -27,12 +27,58 @@ jobs:
           distribution: 'temurin'
           cache: 'maven' # Cache Maven dependencies
 
+      - name: Dependency check
+        run: mvn dependency:resolve --file pom.xml
+        
+      - name: Test plugin
+        id: test 
+        run: mvn test --file pom.xml
+
       - name: Build with Maven
+        id: build
+        if: steps.test.outcome == 'success'
         # The -B flag enables batch mode
-        run: mvn -B package --file pom.xml
+        run: mvn clean -DskipTests package --file pom.xml
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: sonar-metrics-exporter-plugin # You can customize the artifact name
           path: target/*.jar # Assumes the JAR is in the target directory
+      
+      - name: Update pom version for next development iteration
+        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && steps.build.outcome == 'success'
+        run: |
+          set -euo pipefail
+          echo "Determining branch from GITHUB_REF=${GITHUB_REF}"
+          # Determine desired suffix based on branch
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            SUFFIX=""
+          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            SUFFIX="-SNAPSHOT"
+          else
+            echo "Not on main/develop, skipping version bump"
+            exit 0
+          fi
+
+          # Resolve current project version using Maven
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: ${CURRENT_VERSION}"
+
+          # Remove -SNAPSHOT suffix from base version if present
+          BASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
+          PATCH=${PATCH:-0}
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}${SUFFIX}"
+
+          echo "Setting new version: ${NEW_VERSION}"
+          mvn build-helper:parse-version versions:set -DnewVersion="${NEW_VERSION}" versions:commit --file pom.xml
+
+      - name: Create Release and upload artifact
+        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
