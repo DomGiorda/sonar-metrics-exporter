@@ -26,7 +26,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven' # Cache Maven dependencies
-      
+      - name: Dependency check
+        run: mvn dependency:resolve --file pom.xml
+        
       - name: Test plugin
         id: test 
         run: mvn test --file pom.xml
