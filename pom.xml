@@ -28,7 +28,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Target SonarQube API version for compilation. Updated to 10.8 as requested. -->
-    <sonar.apiVersion>10.8.0</sonar.apiVersion>
+    <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
     <!-- Pin plugin API at the maximum supported version you provided. This
          property is used only for the sonar-plugin-api artifact. -->
     <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
