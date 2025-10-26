@@ -75,7 +75,7 @@ jobs:
 
           echo "Setting new version: ${NEW_VERSION}"
           mvn build-helper:parse-version versions:set -DnewVersion="${NEW_VERSION}" versions:commit --file pom.xml
-          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT 
+          echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Create Release and upload artifact
         if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
