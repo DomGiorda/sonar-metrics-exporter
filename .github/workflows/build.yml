@@ -35,6 +35,7 @@ jobs:
         run: mvn test --file pom.xml
 
       - name: Build with Maven
+        id: build
         if: steps.test.outcome == 'success'
         # The -B flag enables batch mode
         run: mvn clean -DskipTests package --file pom.xml
@@ -46,11 +47,17 @@ jobs:
           path: target/*.jar # Assumes the JAR is in the target directory
       
       - name: Update pom version for next development iteration
-        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
+        if: github.ref == 'refs/heads/main' && steps.build.outcome == 'success' || github.ref == 'refs/heads/develop' && steps.build.outcome == 'success'
         run: |
-          mvn build-helper:parse-version versions:set \
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            mvn build-helper:parse-version versions:set \
             -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1)) \
             versions:commit --file pom.xml
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            mvn build-helper:parse-version versions:set \
+              -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\$((\${parsedVersion.incrementalVersion}+1))-SNAPSHOT \
+              versions:commit --file pom.xml
+          fi
 
       - name: Create Release and upload artifact
         if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
