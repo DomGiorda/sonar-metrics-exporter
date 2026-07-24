@@ -27,8 +27,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Target SonarQube API version for compilation. Updated to 10.8 as requested. -->
-        <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
+        <!-- Target SonarQube API version for compilation. Updated to 2026.x as requested. -->
+        <sonar.apiVersion>26.2.0.119303</sonar.apiVersion>
         <!-- Pin plugin API at the maximum supported version you provided. This
          property is used only for the sonar-plugin-api artifact. -->
         <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
@@ -90,12 +90,13 @@
             <plugin>
                 <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
                 <artifactId>sonar-packaging-maven-plugin</artifactId>
-                <version>1.17</version>
+                <version>1.23.0.740</version>
                 <extensions>true</extensions>
                 <configuration>
                     <pluginKey>prometheus-exporter</pluginKey>
                     <pluginClass>co.etam.sonar.prometheus.PrometheusExporterPlugin</pluginClass>
                     <pluginName>Prometheus Exporter</pluginName>
+                    <pluginApiMinVersion>${sonar.pluginApiVersion}</pluginApiMinVersion>
                 </configuration>
             </plugin>
             <plugin>

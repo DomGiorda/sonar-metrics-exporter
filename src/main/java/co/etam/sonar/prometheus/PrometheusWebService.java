@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
+import org.sonarqube.ws.client.projectbranches.ListRequest;
+import org.sonarqube.ws.ProjectBranches;
+
 public class PrometheusWebService implements WebService {
 
     static final Set<Metric<?>> SUPPORTED_METRICS = new HashSet<>();
@@ -49,6 +52,36 @@ public class PrometheusWebService implements WebService {
         SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES);
         SUPPORTED_METRICS.add(CoreMetrics.NCLOC);
         SUPPORTED_METRICS.add(CoreMetrics.LINES);
+
+        // Test metrics
+        SUPPORTED_METRICS.add(CoreMetrics.TEST_SUCCESS_DENSITY);
+        SUPPORTED_METRICS.add(CoreMetrics.TESTS);
+        SUPPORTED_METRICS.add(CoreMetrics.TEST_FAILURES);
+        SUPPORTED_METRICS.add(CoreMetrics.TEST_ERRORS);
+        SUPPORTED_METRICS.add(CoreMetrics.SKIPPED_TESTS);
+
+        // Branch/PR metrics (New Code Period)
+        SUPPORTED_METRICS.add(CoreMetrics.NEW_BUGS);
+        SUPPORTED_METRICS.add(CoreMetrics.NEW_VULNERABILITIES);
+        SUPPORTED_METRICS.add(CoreMetrics.NEW_CODE_SMELLS);
+        SUPPORTED_METRICS.add(CoreMetrics.NEW_COVERAGE);
+        SUPPORTED_METRICS.add(CoreMetrics.NEW_DUPLICATED_LINES_DENSITY);
+
+        // Language breakdown
+        SUPPORTED_METRICS.add(CoreMetrics.NCLOC_LANGUAGE_DISTRIBUTION);
+
+        // Maintainability ratios
+        SUPPORTED_METRICS.add(CoreMetrics.SQALE_DEBT_RATIO);
+        SUPPORTED_METRICS.add(CoreMetrics.SQALE_RATING);
+        SUPPORTED_METRICS.add(CoreMetrics.RELIABILITY_RATING);
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_RATING);
+
+        // Security hotspots breakdown
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS_REVIEWED);
+        
+        // Custom/newer metrics that might not be in CoreMetrics constant for this API version
+        SUPPORTED_METRICS.add(new Metric.Builder("security_hotspots_reviewed_status", "Security Hotspots Reviewed Status", Metric.ValueType.FLOAT).setDescription("Security Hotspots Reviewed Status").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("to_review_status", "To Review Status", Metric.ValueType.FLOAT).setDescription("To Review Status").create());
         
     }
 
@@ -90,44 +123,49 @@ public class PrometheusWebService implements WebService {
                     List<Components.Component> projects = getProjects(wsClient);
                     projects.forEach(project -> {
 
-                        Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project);
+                        List<String> branches = getBranches(wsClient, project.getKey());
 
-                        wsResponse.getComponent().getMeasuresList().forEach(measure -> {
+                        branches.forEach(branch -> {
 
-                            String metricKey = measure.getMetric();
-                            String valueStr = measure.getValue();
-                            double valueDouble;
+                            Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project, branch);
 
-                            if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
-                                // Map Quality Gate status string to numeric value
-                                valueDouble = mapAlertStatusToDouble(valueStr);
-                            } else {
-                                // Attempt to parse other metrics as Double
-                                valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
-                            }
+                            wsResponse.getComponent().getMeasuresList().forEach(measure -> {
 
-                            // Determine severity label from the metric key (e.g. "blocker_violations").
-                            String severity = determineSeverityFromMetricKey(metricKey);
+                                String metricKey = measure.getMetric();
+                                String valueStr = measure.getValue();
+                                double valueDouble;
 
-                            if (!matchesSeverityFilter(severity, allowedSeverities)) {
-                                return;
-                            }
+                                if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
+                                    // Map Quality Gate status string to numeric value
+                                    valueDouble = mapAlertStatusToDouble(valueStr);
+                                } else {
+                                    // Attempt to parse other metrics as Double
+                                    valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
+                                }
 
-                            if (this.gauges.containsKey(metricKey)) {
-                                // Pre-registered gauge (from enabledMetrics)
-                                Gauge gauge = this.gauges.get(metricKey);
-                                gauge.labels(project.getKey(), project.getName(), severity).set(valueDouble);
-                            } else {
-                                // Dynamically register a gauge for unexpected/severity-specific metric keys
-                                Gauge dynamicGauge = Gauge.build()
-                                        .name(METRIC_PREFIX + metricKey)
-                                        .help("Metric exported from Sonar: " + metricKey)
-                                        .labelNames("key", "name", "severity")
-                                        .register();
+                                // Determine severity label from the metric key (e.g. "blocker_violations").
+                                String severity = determineSeverityFromMetricKey(metricKey);
 
-                                this.gauges.put(metricKey, dynamicGauge);
-                                dynamicGauge.labels(project.getKey(), project.getName(), severity).set(valueDouble);
-                            }
+                                if (!matchesSeverityFilter(severity, allowedSeverities)) {
+                                    return;
+                                }
+
+                                if (this.gauges.containsKey(metricKey)) {
+                                    // Pre-registered gauge (from enabledMetrics)
+                                    Gauge gauge = this.gauges.get(metricKey);
+                                    gauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
+                                } else {
+                                    // Dynamically register a gauge for unexpected/severity-specific metric keys
+                                    Gauge dynamicGauge = Gauge.build()
+                                            .name(METRIC_PREFIX + metricKey)
+                                            .help("Metric exported from Sonar: " + metricKey)
+                                            .labelNames("key", "name", "severity", "branch")
+                                            .register();
+
+                                    this.gauges.put(metricKey, dynamicGauge);
+                                    dynamicGauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
+                                }
+                            });
                         });
                     });
                 }
@@ -173,19 +211,38 @@ public class PrometheusWebService implements WebService {
         this.enabledMetrics.forEach(metric -> gauges.put(metric.getKey(), Gauge.build()
             .name(METRIC_PREFIX + metric.getKey())
             .help(metric.getDescription())
-            .labelNames("key", "name", "severity")
+            .labelNames("key", "name", "severity", "branch")
             .register()));
     }
 
-    private Measures.ComponentWsResponse getMeasures(WsClient wsClient, Components.Component project) {
+    private List<String> getBranches(WsClient wsClient, String projectKey) {
+        try {
+            ProjectBranches.ListWsResponse response = wsClient.projectBranches().list(new ListRequest().setProject(projectKey));
+            List<String> branches = response.getBranchesList().stream()
+                    .map(ProjectBranches.Branch::getName)
+                    .collect(Collectors.toList());
+            return branches.isEmpty() ? Collections.singletonList("main") : branches;
+        } catch (Exception e) {
+            // Fallback for Community Edition or older SonarQube versions without branch support
+            return Collections.singletonList("main");
+        }
+    }
+
+    private Measures.ComponentWsResponse getMeasures(WsClient wsClient, Components.Component project, String branch) {
 
         List<String> metricKeys = this.enabledMetrics.stream()
             .map(Metric::getKey)
             .collect(Collectors.toList());
 
-        return wsClient.measures().component(new ComponentRequest()
+        ComponentRequest request = new ComponentRequest()
             .setComponent(project.getKey())
-            .setMetricKeys(metricKeys));
+            .setMetricKeys(metricKeys);
+        
+        if (branch != null && !branch.isEmpty() && !branch.equals("main")) {
+            request.setBranch(branch);
+        }
+
+        return wsClient.measures().component(request);
     }
 
     private List<Components.Component> getProjects(WsClient wsClient) {

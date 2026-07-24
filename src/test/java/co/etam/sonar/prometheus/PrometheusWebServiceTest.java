@@ -65,17 +65,18 @@ class PrometheusWebServiceTest {
         Gauge bugsGauge = gauges.get(CoreMetrics.BUGS.getKey());
         assertNotNull(bugsGauge);
 
-        // Act: set a value for a project with severity "ALL"
+        // Act: set a value for a project with severity "ALL" and branch "main"
         String projectKey = "proj-1";
         String projectName = "Project One";
         String severity = "ALL"; // totals use ALL by our implementation
-        bugsGauge.labels(projectKey, projectName, severity).set(13.0);
+        String branch = "main";
+        bugsGauge.labels(projectKey, projectName, severity, branch).set(13.0);
 
-        // Assert: sample exported with severity label
+        // Assert: sample exported with severity label and branch label
         Double sample = CollectorRegistry.defaultRegistry.getSampleValue(
                 "sonarqube_" + CoreMetrics.BUGS.getKey(),
-                new String[]{"key", "name", "severity"},
-                new String[]{projectKey, projectName, severity}
+                new String[]{"key", "name", "severity", "branch"},
+                new String[]{projectKey, projectName, severity, branch}
         );
 
         assertNotNull(sample, "Exported sample should exist");

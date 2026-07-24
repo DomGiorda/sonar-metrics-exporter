@@ -22,6 +22,7 @@ Supported SonarQube versions (compatibility)
 | 9.x | Supported (stable) — builds against plugin API 9.4.x for broad compatibility |
 | 10.8 | Supported — tested compilation against SonarQube 10.8 artifacts |
 | 25.10 | Supported — tested for compatibility with SonarQube 25.10 |
+| **2026.1 / 2026.2** | **Supported — tested against sonar-ws 26.2.0.119303** |
 
 If you need to target a specific SonarQube runtime, check `pom.xml` properties (`sonar.apiVersion` and `sonar.pluginApiVersion`) and build accordingly.
 
@@ -72,6 +73,22 @@ This section outlines the key metrics related to code quality and analysis that 
 * **SECURITY_HOTSPOTS:** Highlights security-sensitive pieces of code that require manual review to determine if a vulnerability exists.
 * **DUPLICATED_LINES:** Shows the percentage or number of code lines that are identical or very similar to other code blocks, often indicating a need for refactoring.
 * **LINES:** Show the total count of lines in your project.
+* **TEST_SUCCESS_DENSITY:** % of tests that pass.
+* **TESTS:** Total number of unit tests.
+* **TEST_FAILURES** / **TEST_ERRORS:** Broken tests vs errors.
+* **SKIPPED_TESTS:** Ignored tests.
+* **NEW_BUGS** / **NEW_VULNERABILITIES** / **NEW_CODE_SMELLS:** Metrics only for new code (new code period).
+* **NEW_COVERAGE:** Coverage on new code.
+* **NEW_DUPLICATED_LINES_DENSITY:** Duplicated lines density on new code.
+* **NCLOC_LANGUAGE_DISTRIBUTION:** LOC distribution by language.
+* **SQALE_DEBT_RATIO:** Technical debt ratio as a % of total development cost.
+* **SQALE_RATING:** Maintainability rating (A–E).
+* **RELIABILITY_RATING** / **SECURITY_RATING:** Equivalent ratings for bugs and vulnerabilities.
+* **SECURITY_HOTSPOTS_REVIEWED:** % of reviewed hotspots.
+* **SECURITY_HOTSPOTS_REVIEWED_STATUS** / **TO_REVIEW_STATUS:** Review status breakdowns.
+
+### Branch Tracking
+The exporter includes a `branch` label for dimensional tracking in Prometheus/Grafana (e.g. `sonarqube_bugs{project="mi-app", branch="main"}`). If the SonarQube instance supports the branches API, all available branches are queried and exposed. For Community Editions without branch support, the `branch` label defaults to `"main"`.
 
 ## Screenshots
 <p align="center">
