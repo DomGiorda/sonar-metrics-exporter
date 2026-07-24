@@ -117,57 +117,8 @@ public class PrometheusWebService implements WebService {
                 Set<String> allowedSeverities = parseSeverityFilter(severityParam);
 
                 if (!this.enabledMetrics.isEmpty()) {
-
-                    WsClient wsClient = WsClientFactories.getLocal().newClient(request.localConnector());
-
-                    List<Components.Component> projects = getProjects(wsClient);
-                    projects.forEach(project -> {
-
-                        List<String> branches = getBranches(wsClient, project.getKey());
-
-                        branches.forEach(branch -> {
-
-                            Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project, branch);
-
-                            wsResponse.getComponent().getMeasuresList().forEach(measure -> {
-
-                                String metricKey = measure.getMetric();
-                                String valueStr = measure.getValue();
-                                double valueDouble;
-
-                                if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
-                                    // Map Quality Gate status string to numeric value
-                                    valueDouble = mapAlertStatusToDouble(valueStr);
-                                } else {
-                                    // Attempt to parse other metrics as Double
-                                    valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
-                                }
-
-                                // Determine severity label from the metric key (e.g. "blocker_violations").
-                                String severity = determineSeverityFromMetricKey(metricKey);
-
-                                if (!matchesSeverityFilter(severity, allowedSeverities)) {
-                                    return;
-                                }
-
-                                if (this.gauges.containsKey(metricKey)) {
-                                    // Pre-registered gauge (from enabledMetrics)
-                                    Gauge gauge = this.gauges.get(metricKey);
-                                    gauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
-                                } else {
-                                    // Dynamically register a gauge for unexpected/severity-specific metric keys
-                                    Gauge dynamicGauge = Gauge.build()
-                                            .name(METRIC_PREFIX + metricKey)
-                                            .help("Metric exported from Sonar: " + metricKey)
-                                            .labelNames("key", "name", "severity", "branch")
-                                            .register();
-
-                                    this.gauges.put(metricKey, dynamicGauge);
-                                    dynamicGauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
-                                }
-                            });
-                        });
-                    });
+                    WsClient wsClient = createWsClient(request);
+                    processAllProjects(wsClient, allowedSeverities);
                 }
 
                 OutputStream output = response.stream()
@@ -183,6 +134,64 @@ public class PrometheusWebService implements WebService {
             });
 
         controller.done();
+    }
+
+    WsClient createWsClient(org.sonar.api.server.ws.Request request) {
+        return WsClientFactories.getLocal().newClient(request.localConnector());
+    }
+
+    private void processAllProjects(WsClient wsClient, Set<String> allowedSeverities) {
+        List<Components.Component> projects = getProjects(wsClient);
+        projects.forEach(project -> processProjectBranches(wsClient, project, allowedSeverities));
+    }
+
+    private void processProjectBranches(WsClient wsClient, Components.Component project, Set<String> allowedSeverities) {
+        List<String> branches = getBranches(wsClient, project.getKey());
+        branches.forEach(branch -> processMeasuresForBranch(wsClient, project, branch, allowedSeverities));
+    }
+
+    private void processMeasuresForBranch(WsClient wsClient, Components.Component project, String branch, Set<String> allowedSeverities) {
+        Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project, branch);
+        wsResponse.getComponent().getMeasuresList().forEach(measure -> 
+            processSingleMeasure(project, branch, allowedSeverities, measure)
+        );
+    }
+
+    private void processSingleMeasure(Components.Component project, String branch, Set<String> allowedSeverities, Measure measure) {
+        String metricKey = measure.getMetric();
+        String valueStr = measure.getValue();
+        double valueDouble;
+
+        if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
+            // Map Quality Gate status string to numeric value
+            valueDouble = mapAlertStatusToDouble(valueStr);
+        } else {
+            // Attempt to parse other metrics as Double
+            valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
+        }
+
+        // Determine severity label from the metric key (e.g. "blocker_violations").
+        String severity = determineSeverityFromMetricKey(metricKey);
+
+        if (!matchesSeverityFilter(severity, allowedSeverities)) {
+            return;
+        }
+
+        if (this.gauges.containsKey(metricKey)) {
+            // Pre-registered gauge (from enabledMetrics)
+            Gauge gauge = this.gauges.get(metricKey);
+            gauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
+        } else {
+            // Dynamically register a gauge for unexpected/severity-specific metric keys
+            Gauge dynamicGauge = Gauge.build()
+                    .name(METRIC_PREFIX + metricKey)
+                    .help("Metric exported from Sonar: " + metricKey)
+                    .labelNames("key", "name", "severity", "branch")
+                    .register();
+
+            this.gauges.put(metricKey, dynamicGauge);
+            dynamicGauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
+        }
     }
 
     private void updateEnabledMetrics() {

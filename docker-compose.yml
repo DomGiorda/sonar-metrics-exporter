@@ -1,7 +1,7 @@
 services:
   sonarqube:
     # Default image points to SonarQube 10.8 Community; change the image tag if you need a different version.
-    image: sonarqube:25.10.0.114319-community
+    image: sonarqube:26.7.0.124771-community
     container_name: sonar
     ports:
       - "9000:9000"

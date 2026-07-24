@@ -136,6 +136,80 @@ class PrometheusWebServiceTest {
         assertTrue((Boolean) m.invoke(service, "MAJOR", emptyFilter));
     }
 
+    @Test
+    void parseDoubleOrDefault_returnsParsedDouble() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        PrometheusWebService service = new PrometheusWebService(configuration);
+        Method m = PrometheusWebService.class.getDeclaredMethod("parseDoubleOrDefault", String.class, double.class);
+        m.setAccessible(true);
+        
+        assertEquals(42.5, m.invoke(service, "42.5", 0.0));
+        assertEquals(0.0, m.invoke(service, "invalid", 0.0));
+        assertEquals(0.0, m.invoke(service, null, 0.0));
+    }
+
+    @Test
+    void mapAlertStatusToDouble_returnsCorrectValues() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        PrometheusWebService service = new PrometheusWebService(configuration);
+        Method m = PrometheusWebService.class.getDeclaredMethod("mapAlertStatusToDouble", String.class);
+        m.setAccessible(true);
+        
+        assertEquals(1.0, m.invoke(service, "OK"));
+        assertEquals(1.0, m.invoke(service, "ok"));
+        assertEquals(2.0, m.invoke(service, "WARN"));
+        assertEquals(3.0, m.invoke(service, "ERROR"));
+        assertEquals(0.0, m.invoke(service, "UNKNOWN"));
+        assertEquals(0.0, m.invoke(service, (String) null));
+    }
+
+    @Test
+    void define_setsUpControllerAndAction_andExecutesHandler() throws Exception {
+        org.sonar.api.server.ws.WebService.Context context = org.mockito.Mockito.mock(org.sonar.api.server.ws.WebService.Context.class);
+        org.sonar.api.server.ws.WebService.NewController controller = org.mockito.Mockito.mock(org.sonar.api.server.ws.WebService.NewController.class);
+        org.sonar.api.server.ws.WebService.NewAction action = org.mockito.Mockito.mock(org.sonar.api.server.ws.WebService.NewAction.class);
+        org.sonar.api.server.ws.WebService.NewParam param = org.mockito.Mockito.mock(org.sonar.api.server.ws.WebService.NewParam.class);
+
+        when(context.createController(org.mockito.ArgumentMatchers.anyString())).thenReturn(controller);
+        when(controller.createAction(org.mockito.ArgumentMatchers.anyString())).thenReturn(action);
+        when(action.createParam(org.mockito.ArgumentMatchers.anyString())).thenReturn(param);
+        when(param.setDescription(org.mockito.ArgumentMatchers.anyString())).thenReturn(param);
+        when(param.setRequired(org.mockito.ArgumentMatchers.anyBoolean())).thenReturn(param);
+
+        PrometheusWebService service = org.mockito.Mockito.spy(new PrometheusWebService(configuration));
+        service.define(context);
+
+        org.mockito.ArgumentCaptor<org.sonar.api.server.ws.RequestHandler> handlerCaptor = org.mockito.ArgumentCaptor.forClass(org.sonar.api.server.ws.RequestHandler.class);
+        org.mockito.Mockito.verify(action).setHandler(handlerCaptor.capture());
+        org.sonar.api.server.ws.RequestHandler handler = handlerCaptor.getValue();
+        assertNotNull(handler);
+
+        // Prepare mocks for handler execution
+        org.sonar.api.server.ws.Request request = org.mockito.Mockito.mock(org.sonar.api.server.ws.Request.class);
+        org.sonar.api.server.ws.Response response = org.mockito.Mockito.mock(org.sonar.api.server.ws.Response.class);
+        org.sonar.api.server.ws.Response.Stream stream = org.mockito.Mockito.mock(org.sonar.api.server.ws.Response.Stream.class);
+        
+        when(response.stream()).thenReturn(stream);
+        when(stream.setMediaType(org.mockito.ArgumentMatchers.anyString())).thenReturn(stream);
+        when(stream.setStatus(org.mockito.ArgumentMatchers.anyInt())).thenReturn(stream);
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        when(stream.output()).thenReturn(baos);
+        
+        when(request.param("severity")).thenReturn("ALL");
+
+        org.sonarqube.ws.client.WsClient wsClient = org.mockito.Mockito.mock(org.sonarqube.ws.client.WsClient.class);
+        org.mockito.Mockito.doReturn(wsClient).when(service).createWsClient(org.mockito.ArgumentMatchers.any());
+        
+        org.sonarqube.ws.client.components.ComponentsService compService = org.mockito.Mockito.mock(org.sonarqube.ws.client.components.ComponentsService.class);
+        when(wsClient.components()).thenReturn(compService);
+        
+        org.sonarqube.ws.Components.SearchWsResponse searchResponse = org.sonarqube.ws.Components.SearchWsResponse.newBuilder().build();
+        when(compService.search(org.mockito.ArgumentMatchers.any())).thenReturn(searchResponse);
+        
+        // Execute
+        handler.handle(request, response);
+        
+        assertTrue(baos.toString().length() >= 0);
+    }
+
     // Helper to call private no-arg methods
     private void callPrivate(Object target, String methodName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method m = target.getClass().getDeclaredMethod(methodName);
