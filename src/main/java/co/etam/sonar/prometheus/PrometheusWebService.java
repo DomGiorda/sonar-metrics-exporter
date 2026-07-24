@@ -66,11 +66,22 @@ public class PrometheusWebService implements WebService {
         NewController controller = context.createController("api/prometheus");
         controller.setDescription("Prometheus Exporter");
 
-        controller.createAction("metrics")
-            .setHandler((request, response) -> {
+        NewAction action = controller.createAction("metrics");
+        action.setDescription("Exports SonarQube metrics in Prometheus format");
+        action.createParam("severity")
+            .setDescription("Comma-separated list of severities to filter metrics by (e.g. BLOCKER, CRITICAL, MAJOR, MINOR, INFO, ALL). Defaults to all if omitted or empty.")
+            .setRequired(false);
+
+        action.setHandler((request, response) -> {
 
                 updateEnabledMetrics();
                 updateEnabledGauges();
+
+                String severityParam = request.param("severity");
+                if (severityParam == null || severityParam.trim().isEmpty()) {
+                    severityParam = this.configuration.get(CONFIG_PREFIX + "severity").orElse(null);
+                }
+                Set<String> allowedSeverities = parseSeverityFilter(severityParam);
 
                 if (!this.enabledMetrics.isEmpty()) {
 
@@ -97,6 +108,10 @@ public class PrometheusWebService implements WebService {
 
                             // Determine severity label from the metric key (e.g. "blocker_violations").
                             String severity = determineSeverityFromMetricKey(metricKey);
+
+                            if (!matchesSeverityFilter(severity, allowedSeverities)) {
+                                return;
+                            }
 
                             if (this.gauges.containsKey(metricKey)) {
                                 // Pre-registered gauge (from enabledMetrics)
@@ -223,5 +238,23 @@ public class PrometheusWebService implements WebService {
         if (lower.contains("minor")) return "MINOR";
         if (lower.contains("info")) return "INFO";
         return "ALL";
+    }
+
+    private Set<String> parseSeverityFilter(String severityParam) {
+        if (severityParam == null || severityParam.trim().isEmpty()) {
+            return Collections.emptySet();
+        }
+        return Arrays.stream(severityParam.split(","))
+                .map(String::trim)
+                .map(s -> s.toUpperCase(Locale.ROOT))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    private boolean matchesSeverityFilter(String severity, Set<String> allowedSeverities) {
+        if (allowedSeverities.isEmpty() || allowedSeverities.contains("ALL_SEVERITIES") || allowedSeverities.contains("*")) {
+            return true;
+        }
+        return allowedSeverities.contains(severity);
     }
 }

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sonarqube:
     # Default image points to SonarQube 10.8 Community; change the image tag if you need a different version.
@@ -11,6 +9,7 @@ services:
       # Increase memory if you hit startup issues; defaults are usually fine for local testing
       - SONAR_JDBC_USERNAME=
       - SONAR_JDBC_PASSWORD=
+      - SONAR_FORCEAUTHENTICATION=false
     volumes:
       # Mount a host directory for plugins. Copy your built plugin jar into ./plugins (or link the target jar)
       - ./plugins:/opt/sonarqube/extensions/plugins
@@ -31,9 +30,21 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     restart: unless-stopped
+    depends_on:
+      - sonarqube
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
 
 volumes:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_temp:
   prometheus_data:
+  grafana_data:

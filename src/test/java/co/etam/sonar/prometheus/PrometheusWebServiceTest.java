@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -94,6 +95,44 @@ class PrometheusWebServiceTest {
         assertEquals("MINOR", m.invoke(service, "some_minor_metric"));
         assertEquals("INFO", m.invoke(service, "info_metric"));
         assertEquals("ALL", m.invoke(service, "vulnerabilities"));
+    }
+
+    @Test
+    void parseSeverityFilter_parsesCommaSeparatedAndUpperCases() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        PrometheusWebService service = new PrometheusWebService(configuration);
+
+        Method m = PrometheusWebService.class.getDeclaredMethod("parseSeverityFilter", String.class);
+        m.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        Set<String> result1 = (Set<String>) m.invoke(service, "blocker, critical");
+        assertTrue(result1.contains("BLOCKER"));
+        assertTrue(result1.contains("CRITICAL"));
+        assertEquals(2, result1.size());
+
+        @SuppressWarnings("unchecked")
+        Set<String> resultEmpty = (Set<String>) m.invoke(service, " ");
+        assertTrue(resultEmpty.isEmpty());
+
+        @SuppressWarnings("unchecked")
+        Set<String> resultNull = (Set<String>) m.invoke(service, (String) null);
+        assertTrue(resultNull.isEmpty());
+    }
+
+    @Test
+    void matchesSeverityFilter_filtersCorrectly() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        PrometheusWebService service = new PrometheusWebService(configuration);
+
+        Method m = PrometheusWebService.class.getDeclaredMethod("matchesSeverityFilter", String.class, Set.class);
+        m.setAccessible(true);
+
+        Set<String> filter = Set.of("BLOCKER", "CRITICAL");
+        assertTrue((Boolean) m.invoke(service, "BLOCKER", filter));
+        assertTrue((Boolean) m.invoke(service, "CRITICAL", filter));
+        assertFalse((Boolean) m.invoke(service, "MAJOR", filter));
+
+        Set<String> emptyFilter = Set.of();
+        assertTrue((Boolean) m.invoke(service, "MAJOR", emptyFilter));
     }
 
     // Helper to call private no-arg methods

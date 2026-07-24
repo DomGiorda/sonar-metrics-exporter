@@ -51,7 +51,7 @@ class PrometheusExporterPluginTest {
 
         List<PropertyDefinition> props = (List<PropertyDefinition>) captor.getValue();
 
-        assertEquals(PrometheusWebService.SUPPORTED_METRICS.size(), props.size(), "Should register one property per supported metric");
+        assertEquals(PrometheusWebService.SUPPORTED_METRICS.size() + 1, props.size(), "Should register properties for supported metrics plus severity filter");
 
         Set<String> actualKeys = props.stream()
                 .map(PropertyDefinition::key)
@@ -60,7 +60,8 @@ class PrometheusExporterPluginTest {
         Set<String> expectedKeys = PrometheusWebService.SUPPORTED_METRICS.stream()
                 .map(m -> PrometheusWebService.CONFIG_PREFIX + m.getKey())
                 .collect(Collectors.toSet());
+        expectedKeys.add(PrometheusWebService.CONFIG_PREFIX + "severity");
 
-        assertEquals(expectedKeys, actualKeys, "Registered property keys should match supported metric keys with the configured prefix");
+        assertEquals(expectedKeys, actualKeys, "Registered property keys should match supported metric keys and severity configuration");
     }
 }

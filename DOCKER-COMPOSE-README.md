@@ -1,9 +1,9 @@
-Quick test setup: SonarQube + Prometheus
+Quick test setup: SonarQube + Prometheus + Grafana
 
-This repository contains a docker-compose setup to run SonarQube (Community) and Prometheus so you can test this Sonar plugin locally.
+This repository contains a docker-compose setup to run SonarQube (Community), Prometheus, and Grafana OSS so you can test and visualize metrics from this Sonar plugin locally.
 
 Files added
-- `docker-compose.yml` — starts SonarQube and Prometheus (Prometheus scrapes `/api/prometheus/metrics`).
+- `docker-compose.yml` — starts SonarQube, Prometheus, and Grafana (Prometheus scrapes `/api/prometheus/metrics`).
 - `prometheus/prometheus.yml` — Prometheus config that scrapes SonarQube at `http://sonarqube:9000/api/prometheus/metrics`.
 
 How to use
@@ -35,12 +35,14 @@ How to use
    docker-compose up -d
    ```
 
-4. Wait for SonarQube to become healthy (logs indicate when ready). The web UI should be available at:
-   - http://localhost:9000
+4. Wait for SonarQube to become healthy (logs indicate when ready). The web UIs will be available at:
+   - SonarQube: http://localhost:9000
+   - Prometheus: http://localhost:9090
+   - Grafana: http://localhost:3000
 
 5. Check Prometheus target page at http://localhost:9090/targets — it should show the `sonarqube` scrape target and a last scrape status.
 
-6. Query metrics (Prometheus UI):
+6. Query metrics (Prometheus UI or Grafana):
    - Example metric name exported by the plugin: `sonarqube_bugs{key="<projectKey>", name="<projectName>", severity="ALL"}`
    - Example PromQL to see totals: `sum by (key, name) (sonarqube_bugs)`
 

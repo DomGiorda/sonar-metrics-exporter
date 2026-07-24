@@ -43,6 +43,8 @@ scrape_configs:
       - targets: ['localhost:9000']
 ```
 3. Alternatively, point your HTTP client to `http://localhost:9000/api/prometheus/metrics`
+   * You can filter metrics by severity directly via query parameter: `http://localhost:9000/api/prometheus/metrics?severity=BLOCKER,CRITICAL`
+   * Or configure default severities under **Administration &rarr; Configuration &rarr; General Settings &rarr; Prometheus Exporter &rarr; Filter by Severity**.
 4. You can export the dashboard from this file:
 ```bash
   resources/grafana_dashboard.json

@@ -21,6 +21,13 @@ public class PrometheusExporterPlugin implements Plugin {
                 .build())
             .collect(Collectors.toList());
 
+        properties.add(PropertyDefinition.builder(PrometheusWebService.CONFIG_PREFIX + "severity")
+            .name("Filter by Severity")
+            .description("Comma-separated list of severities to export (e.g. BLOCKER, CRITICAL, MAJOR, MINOR, INFO, ALL). Leave empty to export all severities.")
+            .type(PropertyType.STRING)
+            .defaultValue("")
+            .build());
+
         context.addExtensions(properties);
         context.addExtension(PrometheusWebService.class);
     }
