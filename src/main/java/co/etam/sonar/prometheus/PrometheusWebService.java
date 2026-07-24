@@ -32,6 +32,7 @@ public class PrometheusWebService implements WebService {
     static final Set<Metric<?>> SUPPORTED_METRICS = new HashSet<>();
     static final String CONFIG_PREFIX = "prometheus.export.";
     private static final String METRIC_PREFIX = "sonarqube_";
+    private static final String PARAM_SEVERITY = "severity";
 
     private final Configuration configuration;
     private final Map<String, Gauge> gauges = new HashMap<>();
@@ -101,7 +102,7 @@ public class PrometheusWebService implements WebService {
 
         NewAction action = controller.createAction("metrics");
         action.setDescription("Exports SonarQube metrics in Prometheus format");
-        action.createParam("severity")
+        action.createParam(PARAM_SEVERITY)
             .setDescription("Comma-separated list of severities to filter metrics by (e.g. BLOCKER, CRITICAL, MAJOR, MINOR, INFO, ALL). Defaults to all if omitted or empty.")
             .setRequired(false);
 
@@ -110,9 +111,9 @@ public class PrometheusWebService implements WebService {
                 updateEnabledMetrics();
                 updateEnabledGauges();
 
-                String severityParam = request.param("severity");
+                String severityParam = request.param(PARAM_SEVERITY);
                 if (severityParam == null || severityParam.trim().isEmpty()) {
-                    severityParam = this.configuration.get(CONFIG_PREFIX + "severity").orElse(null);
+                    severityParam = this.configuration.get(CONFIG_PREFIX + PARAM_SEVERITY).orElse(null);
                 }
                 Set<String> allowedSeverities = parseSeverityFilter(severityParam);
 
@@ -186,7 +187,7 @@ public class PrometheusWebService implements WebService {
             Gauge dynamicGauge = Gauge.build()
                     .name(METRIC_PREFIX + metricKey)
                     .help("Metric exported from Sonar: " + metricKey)
-                    .labelNames("key", "name", "severity", "branch")
+                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
                     .register();
 
             this.gauges.put(metricKey, dynamicGauge);
@@ -220,7 +221,7 @@ public class PrometheusWebService implements WebService {
         this.enabledMetrics.forEach(metric -> gauges.put(metric.getKey(), Gauge.build()
             .name(METRIC_PREFIX + metric.getKey())
             .help(metric.getDescription())
-            .labelNames("key", "name", "severity", "branch")
+            .labelNames("key", "name", PARAM_SEVERITY, "branch")
             .register()));
     }
 
