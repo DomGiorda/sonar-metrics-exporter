@@ -61,6 +61,7 @@
         <sonar.organization>domgiorda</sonar.organization>
         <sonar.projectKey>DomGiorda_sonar-metrics-exporter</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.coverage.exclusions>**/PrometheusExporterPlugin.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
