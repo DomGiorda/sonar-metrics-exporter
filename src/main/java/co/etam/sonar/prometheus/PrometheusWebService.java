@@ -8,6 +8,8 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.server.ws.WebService;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Measures;
 import org.sonarqube.ws.Measures.Measure;
@@ -15,19 +17,20 @@ import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
 import org.sonarqube.ws.client.components.SearchRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
-import org.sonarqube.ws.client.measures.MeasuresService;
+import org.sonarqube.ws.client.projectbranches.ListRequest;
+import org.sonarqube.ws.ProjectBranches;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.nonNull;
 
-import org.sonarqube.ws.client.projectbranches.ListRequest;
-import org.sonarqube.ws.ProjectBranches;
-
 public class PrometheusWebService implements WebService {
+
+    private static final Logger LOG = Loggers.get(PrometheusWebService.class);
 
     static final Set<Metric<?>> SUPPORTED_METRICS = new HashSet<>();
     static final String CONFIG_PREFIX = "prometheus.export.";
@@ -39,61 +42,78 @@ public class PrometheusWebService implements WebService {
     private final Set<Metric<?>> enabledMetrics = new HashSet<>();
 
     static {
+        // Size & Code
+        SUPPORTED_METRICS.add(CoreMetrics.NCLOC);
+        SUPPORTED_METRICS.add(CoreMetrics.LINES);
+        SUPPORTED_METRICS.add(CoreMetrics.LINES_TO_COVER);
+        SUPPORTED_METRICS.add(CoreMetrics.COMMENT_LINES);
+        SUPPORTED_METRICS.add(CoreMetrics.COMMENT_LINES_DENSITY);
 
+        // Issues & Violations
         SUPPORTED_METRICS.add(CoreMetrics.BUGS);
         SUPPORTED_METRICS.add(CoreMetrics.VULNERABILITIES);
         SUPPORTED_METRICS.add(CoreMetrics.CODE_SMELLS);
-        SUPPORTED_METRICS.add(CoreMetrics.COVERAGE);
-        SUPPORTED_METRICS.add(CoreMetrics.TECHNICAL_DEBT);
-        SUPPORTED_METRICS.add(CoreMetrics.COMPLEXITY);
-        SUPPORTED_METRICS.add(CoreMetrics.LINES_TO_COVER);
         SUPPORTED_METRICS.add(CoreMetrics.VIOLATIONS);
-        SUPPORTED_METRICS.add(CoreMetrics.ALERT_STATUS);
         SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS);
-        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES);
-        SUPPORTED_METRICS.add(CoreMetrics.NCLOC);
-        SUPPORTED_METRICS.add(CoreMetrics.LINES);
 
-        // Test metrics
-        SUPPORTED_METRICS.add(CoreMetrics.TEST_SUCCESS_DENSITY);
+        // Technical Debt & Maintainability
+        SUPPORTED_METRICS.add(CoreMetrics.TECHNICAL_DEBT); // Key is sqale_index
+        SUPPORTED_METRICS.add(CoreMetrics.SQALE_DEBT_RATIO);
+        SUPPORTED_METRICS.add(CoreMetrics.SQALE_RATING);
+        SUPPORTED_METRICS.add(CoreMetrics.RELIABILITY_RATING);
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_RATING);
+
+        // Ratings & Remediation Effort
+        SUPPORTED_METRICS.add(CoreMetrics.RELIABILITY_REMEDIATION_EFFORT);
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_REMEDIATION_EFFORT);
+        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS_REVIEWED);
+
+        // Complexity
+        SUPPORTED_METRICS.add(CoreMetrics.COMPLEXITY);
+        SUPPORTED_METRICS.add(CoreMetrics.COGNITIVE_COMPLEXITY);
+
+        // Duplications
+        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES);
+        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_LINES_DENSITY);
+        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_BLOCKS);
+        SUPPORTED_METRICS.add(CoreMetrics.DUPLICATED_FILES);
+
+        // Coverage & Tests
+        SUPPORTED_METRICS.add(CoreMetrics.COVERAGE);
         SUPPORTED_METRICS.add(CoreMetrics.TESTS);
         SUPPORTED_METRICS.add(CoreMetrics.TEST_FAILURES);
         SUPPORTED_METRICS.add(CoreMetrics.TEST_ERRORS);
         SUPPORTED_METRICS.add(CoreMetrics.SKIPPED_TESTS);
+        SUPPORTED_METRICS.add(CoreMetrics.TEST_SUCCESS_DENSITY);
 
-        // Branch/PR metrics (New Code Period)
+        // Quality Gate
+        SUPPORTED_METRICS.add(CoreMetrics.ALERT_STATUS);
+
+        // Branch / New Code Period Metrics
         SUPPORTED_METRICS.add(CoreMetrics.NEW_BUGS);
         SUPPORTED_METRICS.add(CoreMetrics.NEW_VULNERABILITIES);
         SUPPORTED_METRICS.add(CoreMetrics.NEW_CODE_SMELLS);
         SUPPORTED_METRICS.add(CoreMetrics.NEW_COVERAGE);
         SUPPORTED_METRICS.add(CoreMetrics.NEW_DUPLICATED_LINES_DENSITY);
 
-        // Language breakdown
+        // Language distribution
         SUPPORTED_METRICS.add(CoreMetrics.NCLOC_LANGUAGE_DISTRIBUTION);
 
-        // Maintainability ratios
-        SUPPORTED_METRICS.add(CoreMetrics.SQALE_DEBT_RATIO);
-        SUPPORTED_METRICS.add(CoreMetrics.SQALE_RATING);
-        SUPPORTED_METRICS.add(CoreMetrics.RELIABILITY_RATING);
-        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_RATING);
-
-        // Security hotspots breakdown
-        SUPPORTED_METRICS.add(CoreMetrics.SECURITY_HOTSPOTS_REVIEWED);
-        
-        // Custom/newer metrics that might not be in CoreMetrics constant for this API version
-        SUPPORTED_METRICS.add(new Metric.Builder("security_hotspots_reviewed_status", "Security Hotspots Reviewed Status", Metric.ValueType.FLOAT).setDescription("Security Hotspots Reviewed Status").create());
-        SUPPORTED_METRICS.add(new Metric.Builder("to_review_status", "To Review Status", Metric.ValueType.FLOAT).setDescription("To Review Status").create());
-        
+        // Additional / custom metric keys present in SonarQube API
+        SUPPORTED_METRICS.add(new Metric.Builder("security_review_rating", "Security Review Rating", Metric.ValueType.RATING).setDescription("Security Review Rating").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("security_hotspots_reviewed_status", "Security Hotspots Reviewed Status", Metric.ValueType.INT).setDescription("Security Hotspots Reviewed Status").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("security_hotspots_to_review_status", "Security Hotspots To Review Status", Metric.ValueType.INT).setDescription("Security Hotspots To Review Status").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("open_issues", "Open Issues", Metric.ValueType.INT).setDescription("Open Issues").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("confirmed_issues", "Confirmed Issues", Metric.ValueType.INT).setDescription("Confirmed Issues").create());
+        SUPPORTED_METRICS.add(new Metric.Builder("false_positive_issues", "False Positive Issues", Metric.ValueType.INT).setDescription("False Positive Issues").create());
     }
 
     public PrometheusWebService(Configuration configuration) {
-
         this.configuration = configuration;
     }
 
     @Override
     public void define(Context context) {
-
         updateEnabledMetrics();
         updateEnabledGauges();
 
@@ -107,9 +127,19 @@ public class PrometheusWebService implements WebService {
             .setRequired(false);
 
         action.setHandler((request, response) -> {
-
+            try {
                 updateEnabledMetrics();
-                updateEnabledGauges();
+                
+                CollectorRegistry registry = new CollectorRegistry();
+                
+                // Exporter health status metric
+                Gauge.build()
+                    .name(METRIC_PREFIX + "exporter_up")
+                    .help("1 if SonarQube Prometheus exporter endpoint is responding")
+                    .register(registry)
+                    .set(1.0);
+
+                Map<String, Gauge> requestGauges = registerGaugesForRegistry(registry);
 
                 String severityParam = request.param(PARAM_SEVERITY);
                 if (severityParam == null || severityParam.trim().isEmpty()) {
@@ -118,8 +148,12 @@ public class PrometheusWebService implements WebService {
                 Set<String> allowedSeverities = parseSeverityFilter(severityParam);
 
                 if (!this.enabledMetrics.isEmpty()) {
-                    WsClient wsClient = createWsClient(request);
-                    processAllProjects(wsClient, allowedSeverities);
+                    try {
+                        WsClient wsClient = createWsClient(request);
+                        processAllProjects(wsClient, allowedSeverities, registry, requestGauges);
+                    } catch (Exception e) {
+                        LOG.warn("Failed to create WsClient or process projects: {}", e.getMessage());
+                    }
                 }
 
                 OutputStream output = response.stream()
@@ -127,12 +161,29 @@ public class PrometheusWebService implements WebService {
                     .setStatus(200)
                     .output();
 
-                try (OutputStreamWriter writer = new OutputStreamWriter(output)) {
-
-                    TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+                try (OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
+                    TextFormat.write004(writer, registry.metricFamilySamples());
                 }
-
-            });
+            } catch (Exception e) {
+                LOG.error("Error generating Prometheus metrics: {}", e.getMessage(), e);
+                try {
+                    OutputStream output = response.stream()
+                        .setMediaType(TextFormat.CONTENT_TYPE_004)
+                        .setStatus(200)
+                        .output();
+                    try (OutputStreamWriter writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
+                        CollectorRegistry fallbackRegistry = new CollectorRegistry();
+                        Gauge.build()
+                            .name(METRIC_PREFIX + "exporter_up")
+                            .help("1 if SonarQube Prometheus exporter endpoint is responding")
+                            .register(fallbackRegistry)
+                            .set(0.0);
+                        TextFormat.write004(writer, fallbackRegistry.metricFamilySamples());
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        });
 
         controller.done();
     }
@@ -141,64 +192,113 @@ public class PrometheusWebService implements WebService {
         return WsClientFactories.getLocal().newClient(request.localConnector());
     }
 
-    private void processAllProjects(WsClient wsClient, Set<String> allowedSeverities) {
-        List<Components.Component> projects = getProjects(wsClient);
-        projects.forEach(project -> processProjectBranches(wsClient, project, allowedSeverities));
+    private Map<String, Gauge> registerGaugesForRegistry(CollectorRegistry registry) {
+        Map<String, Gauge> gaugesMap = new HashMap<>();
+        this.enabledMetrics.forEach(metric -> {
+            String key = metric.getKey();
+            String name = sanitizeMetricName(key);
+            String help = getSafeHelp(metric);
+            try {
+                Gauge gauge = Gauge.build()
+                    .name(name)
+                    .help(help)
+                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                    .register(registry);
+                gaugesMap.put(key, gauge);
+            } catch (Exception ignored) {
+            }
+        });
+        return gaugesMap;
     }
 
-    private void processProjectBranches(WsClient wsClient, Components.Component project, Set<String> allowedSeverities) {
-        List<String> branches = getBranches(wsClient, project.getKey());
-        branches.forEach(branch -> processMeasuresForBranch(wsClient, project, branch, allowedSeverities));
+    private void processAllProjects(WsClient wsClient, Set<String> allowedSeverities, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        try {
+            List<Components.Component> projects = getProjects(wsClient);
+            if (projects != null) {
+                projects.forEach(project -> processProjectBranches(wsClient, project, allowedSeverities, registry, requestGauges));
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to fetch projects list: {}", e.getMessage());
+        }
     }
 
-    private void processMeasuresForBranch(WsClient wsClient, Components.Component project, String branch, Set<String> allowedSeverities) {
-        Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project, branch);
-        wsResponse.getComponent().getMeasuresList().forEach(measure -> 
-            processSingleMeasure(project, branch, allowedSeverities, measure)
-        );
+    private void processProjectBranches(WsClient wsClient, Components.Component project, Set<String> allowedSeverities, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        if (project == null || project.getKey() == null) {
+            return;
+        }
+        try {
+            List<String> branches = getBranches(wsClient, project.getKey());
+            if (branches != null) {
+                branches.forEach(branch -> processMeasuresForBranch(wsClient, project, branch, allowedSeverities, registry, requestGauges));
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to fetch branches for project {}: {}", project.getKey(), e.getMessage());
+        }
     }
 
-    private void processSingleMeasure(Components.Component project, String branch, Set<String> allowedSeverities, Measure measure) {
+    private void processMeasuresForBranch(WsClient wsClient, Components.Component project, String branch, Set<String> allowedSeverities, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        try {
+            Measures.ComponentWsResponse wsResponse = getMeasures(wsClient, project, branch);
+            if (wsResponse != null && wsResponse.hasComponent() && wsResponse.getComponent().getMeasuresList() != null) {
+                wsResponse.getComponent().getMeasuresList().forEach(measure ->
+                    processSingleMeasure(project, branch, allowedSeverities, measure, registry, requestGauges)
+                );
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to fetch measures for project {} branch {}: {}", project.getKey(), branch, e.getMessage());
+        }
+    }
+
+    private void processSingleMeasure(Components.Component project, String branch, Set<String> allowedSeverities, Measure measure, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        if (measure == null || measure.getMetric() == null) {
+            return;
+        }
         String metricKey = measure.getMetric();
         String valueStr = measure.getValue();
         double valueDouble;
 
         if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
-            // Map Quality Gate status string to numeric value
             valueDouble = mapAlertStatusToDouble(valueStr);
         } else {
-            // Attempt to parse other metrics as Double
-            valueDouble = parseDoubleOrDefault(valueStr, 0.0); // Use 0.0 as default if parsing fails
+            valueDouble = parseDoubleOrDefault(valueStr, 0.0);
         }
 
-        // Determine severity label from the metric key (e.g. "blocker_violations").
         String severity = determineSeverityFromMetricKey(metricKey);
 
         if (!matchesSeverityFilter(severity, allowedSeverities)) {
             return;
         }
 
-        if (this.gauges.containsKey(metricKey)) {
-            // Pre-registered gauge (from enabledMetrics)
-            Gauge gauge = this.gauges.get(metricKey);
-            gauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
-        } else {
-            // Dynamically register a gauge for unexpected/severity-specific metric keys
-            Gauge dynamicGauge = Gauge.build()
-                    .name(METRIC_PREFIX + metricKey)
-                    .help("Metric exported from Sonar: " + metricKey)
-                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
-                    .register();
+        Gauge gauge = requestGauges.get(metricKey);
+        if (gauge == null) {
+            String sanitizedName = sanitizeMetricName(metricKey);
+            try {
+                gauge = Gauge.build()
+                        .name(sanitizedName)
+                        .help("Metric exported from Sonar: " + metricKey)
+                        .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                        .register(registry);
+                requestGauges.put(metricKey, gauge);
+            } catch (Exception ignored) {
+            }
+        }
 
-            this.gauges.put(metricKey, dynamicGauge);
-            dynamicGauge.labels(project.getKey(), project.getName(), severity, branch).set(valueDouble);
+        if (gauge != null) {
+            try {
+                gauge.labels(
+                    project.getKey() != null ? project.getKey() : "",
+                    project.getName() != null ? project.getName() : "",
+                    severity,
+                    branch != null ? branch : "main"
+                ).set(valueDouble);
+            } catch (Exception ignored) {
+            }
         }
     }
 
     private void updateEnabledMetrics() {
-
         Map<Boolean, List<Metric<?>>> byEnabledState = SUPPORTED_METRICS.stream()
-            .collect(Collectors.groupingBy(metric -> this.configuration.getBoolean(CONFIG_PREFIX + metric.getKey()).orElse(false)));
+            .collect(Collectors.groupingBy(metric -> this.configuration.getBoolean(CONFIG_PREFIX + metric.getKey()).orElse(true)));
 
         this.enabledMetrics.clear();
 
@@ -208,21 +308,43 @@ public class PrometheusWebService implements WebService {
     }
 
     private void updateEnabledGauges() {
-
         CollectorRegistry.defaultRegistry.clear();
-
-        // Clear the local map so we re-register gauges on each configuration refresh
         this.gauges.clear();
+        this.enabledMetrics.forEach(metric -> {
+            String key = metric.getKey();
+            String name = sanitizeMetricName(key);
+            String help = getSafeHelp(metric);
+            try {
+                Gauge gauge = Gauge.build()
+                    .name(name)
+                    .help(help)
+                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                    .register();
+                this.gauges.put(key, gauge);
+            } catch (Exception ignored) {
+            }
+        });
+    }
 
-        // Register gauges for explicitly enabled metrics. Add a "severity" label so
-        // Grafana can filter/group by severity (BLOCKER, CRITICAL, etc.). If Sonar
-        // returns additional severity-specific metric keys we will dynamically
-        // register gauges for them when handling measures.
-        this.enabledMetrics.forEach(metric -> gauges.put(metric.getKey(), Gauge.build()
-            .name(METRIC_PREFIX + metric.getKey())
-            .help(metric.getDescription())
-            .labelNames("key", "name", PARAM_SEVERITY, "branch")
-            .register()));
+    private String sanitizeMetricName(String key) {
+        if (key == null || key.trim().isEmpty()) {
+            return METRIC_PREFIX + "unknown";
+        }
+        String sanitized = key.replaceAll("[^a-zA-Z0-9_:]", "_");
+        if (!sanitized.startsWith(METRIC_PREFIX)) {
+            sanitized = METRIC_PREFIX + sanitized;
+        }
+        return sanitized;
+    }
+
+    private String getSafeHelp(Metric<?> metric) {
+        if (metric != null && metric.getDescription() != null && !metric.getDescription().trim().isEmpty()) {
+            return metric.getDescription();
+        }
+        if (metric != null && metric.getName() != null && !metric.getName().trim().isEmpty()) {
+            return metric.getName();
+        }
+        return metric != null && metric.getKey() != null ? metric.getKey() : "SonarQube Metric";
     }
 
     private List<String> getBranches(WsClient wsClient, String projectKey) {
@@ -233,13 +355,11 @@ public class PrometheusWebService implements WebService {
                     .collect(Collectors.toList());
             return branches.isEmpty() ? Collections.singletonList("main") : branches;
         } catch (Exception e) {
-            // Fallback for Community Edition or older SonarQube versions without branch support
             return Collections.singletonList("main");
         }
     }
 
     private Measures.ComponentWsResponse getMeasures(WsClient wsClient, Components.Component project, String branch) {
-
         List<String> metricKeys = this.enabledMetrics.stream()
             .map(Metric::getKey)
             .collect(Collectors.toList());
@@ -247,7 +367,7 @@ public class PrometheusWebService implements WebService {
         ComponentRequest request = new ComponentRequest()
             .setComponent(project.getKey())
             .setMetricKeys(metricKeys);
-        
+
         if (branch != null && !branch.isEmpty() && !branch.equals("main")) {
             request.setBranch(branch);
         }
@@ -256,13 +376,11 @@ public class PrometheusWebService implements WebService {
     }
 
     private List<Components.Component> getProjects(WsClient wsClient) {
-
         return wsClient.components().search(new SearchRequest()
             .setQualifiers(Collections.singletonList(Qualifiers.PROJECT))
             .setPs("500"))
             .getComponentsList();
     }
-
 
     private double mapAlertStatusToDouble(String status) {
         if (status == null) {
@@ -272,28 +390,18 @@ public class PrometheusWebService implements WebService {
             case "OK": return 1.0;
             case "WARN": return 2.0;
             case "ERROR": return 3.0;
-            default: return 0.0; // Unknown or unexpected status
+            default: return 0.0;
         }
     }
 
-    /**
-     * Safely parses a String to a Double, returning a default value if parsing fails.
-     */
     private double parseDoubleOrDefault(String value, double defaultValue) {
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException | NullPointerException e) {
-            // Log potentially? For now, return default.
             return defaultValue;
         }
     }
 
-    /**
-     * Try to infer a severity label from the metric key. Common Sonar metric keys
-     * include severity text like "blocker", "critical", "major", "minor",
-     * or "info" in their name (for example "blocker_violations"). Return a
-     * canonical uppercase severity name or "ALL" when none can be detected.
-     */
     private String determineSeverityFromMetricKey(String metricKey) {
         if (metricKey == null) {
             return "ALL";

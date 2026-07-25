@@ -1,20 +1,32 @@
-# This workflow builds the SonarQube plugin JAR file
-
-name: Build Plugin
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ "main", "feature/*", "develop" ]
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [ published ]
 
 permissions:
-  contents: write # Allow checkout
+  contents: write
+  packages: write
 
 jobs:
   build:
-    name: Build and Package
+    name: Build & Test for SonarQube ${{ matrix.label }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - profile: sq-9x
+            label: "9.x"
+          - profile: sq-10x
+            label: "10.8"
+          - profile: sq-25x
+            label: "25.10"
+          - profile: sq-26x
+            label: "2026.x"
 
     steps:
       - name: Checkout repository
@@ -25,60 +37,78 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven' # Cache Maven dependencies
+          cache: maven
+          server-id: github
 
-      - name: Dependency check
-        run: mvn dependency:resolve --file pom.xml
-        
-      - name: Test plugin
-        id: test 
-        run: mvn test --file pom.xml
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Build with Maven
-        id: build
-        if: steps.test.outcome == 'success'
-        # The -B flag enables batch mode
-        run: mvn clean -DskipTests package --file pom.xml
+      - name: Unit Tests
+        run: mvn test -P ${{ matrix.profile }}
 
-      - name: Upload artifact
+      - name: SonarCloud Analysis with Coverage
+        if: matrix.profile == 'sq-26x'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=DomGiorda_sonar-metrics-exporter -P ${{ matrix.profile }}
+
+      - name: Build Package
+        run: mvn package -P ${{ matrix.profile }} -DskipTests
+
+      - name: Rename JAR
+        run: |
+          mv target/sonar-prometheus-exporter-*.jar target/sonar-prometheus-exporter-sq${{ matrix.label }}.jar
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sonar-metrics-exporter-plugin # You can customize the artifact name
-          path: target/*.jar # Assumes the JAR is in the target directory
-      
-      - name: Update pom version for next development iteration
-        if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && steps.build.outcome == 'success'
-        run: |
-          set -euo pipefail
-          echo "Determining branch from GITHUB_REF=${GITHUB_REF}"
-          # Determine desired suffix based on branch
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            SUFFIX=""
-          elif [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
-            SUFFIX="-SNAPSHOT"
-          else
-            echo "Not on main/develop, skipping version bump"
-            exit 0
-          fi
+          name: plugin-sq${{ matrix.label }}
+          path: target/sonar-prometheus-exporter-sq${{ matrix.label }}.jar
 
-          # Resolve current project version using Maven
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "Current version: ${CURRENT_VERSION}"
+      - name: Deploy to GitHub Packages
+        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+        run: mvn --batch-mode deploy -P ${{ matrix.profile }} -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Remove -SNAPSHOT suffix from base version if present
-          BASE_VERSION=${CURRENT_VERSION%-SNAPSHOT}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE_VERSION}"
-          PATCH=${PATCH:-0}
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}${SUFFIX}"
+  release:
+    name: Publish Release
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-          echo "Setting new version: ${NEW_VERSION}"
-          mvn build-helper:parse-version versions:set -DnewVersion="${NEW_VERSION}" versions:commit --file pom.xml
-
-      - name: Create Release and upload artifact
-        if: github.ref == 'refs/heads/main' && steps.test.outcome == 'success'
-        uses: softprops/action-gh-release@v1
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          files: target/*.jar
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release_assets
+          find artifacts -name "*.jar" -exec cp {} release_assets/ \;
+          ls -la release_assets/
+
+      - name: Get project version
+        id: get_version
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Project version: ${VERSION}"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
+          files: release_assets/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

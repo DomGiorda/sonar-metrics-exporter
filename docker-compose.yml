@@ -9,7 +9,6 @@ services:
       # Increase memory if you hit startup issues; defaults are usually fine for local testing
       - SONAR_JDBC_USERNAME=
       - SONAR_JDBC_PASSWORD=
-      - SONAR_FORCEAUTHENTICATION=false
     volumes:
       # Mount a host directory for plugins. Copy your built plugin jar into ./plugins (or link the target jar)
       - ./plugins:/opt/sonarqube/extensions/plugins

@@ -195,14 +195,37 @@ class PrometheusWebServiceTest {
         
         when(request.param("severity")).thenReturn("ALL");
 
+        when(configuration.getBoolean(PrometheusWebService.CONFIG_PREFIX + org.sonar.api.measures.CoreMetrics.BUGS.getKey())).thenReturn(Optional.of(true));
+
         org.sonarqube.ws.client.WsClient wsClient = org.mockito.Mockito.mock(org.sonarqube.ws.client.WsClient.class);
         org.mockito.Mockito.doReturn(wsClient).when(service).createWsClient(org.mockito.ArgumentMatchers.any());
         
         org.sonarqube.ws.client.components.ComponentsService compService = org.mockito.Mockito.mock(org.sonarqube.ws.client.components.ComponentsService.class);
         when(wsClient.components()).thenReturn(compService);
         
-        org.sonarqube.ws.Components.SearchWsResponse searchResponse = org.sonarqube.ws.Components.SearchWsResponse.newBuilder().build();
+        org.sonarqube.ws.Components.Component project = org.sonarqube.ws.Components.Component.newBuilder().setKey("proj1").setName("Project 1").build();
+        org.sonarqube.ws.Components.SearchWsResponse searchResponse = org.sonarqube.ws.Components.SearchWsResponse.newBuilder().addComponents(project).build();
         when(compService.search(org.mockito.ArgumentMatchers.any())).thenReturn(searchResponse);
+
+        org.sonarqube.ws.client.projectbranches.ProjectBranchesService pbService = org.mockito.Mockito.mock(org.sonarqube.ws.client.projectbranches.ProjectBranchesService.class);
+        when(wsClient.projectBranches()).thenReturn(pbService);
+        org.sonarqube.ws.ProjectBranches.Branch branch = org.sonarqube.ws.ProjectBranches.Branch.newBuilder().setName("main").build();
+        org.sonarqube.ws.ProjectBranches.ListWsResponse pbResponse = org.sonarqube.ws.ProjectBranches.ListWsResponse.newBuilder().addBranches(branch).build();
+        when(pbService.list(org.mockito.ArgumentMatchers.any())).thenReturn(pbResponse);
+
+        org.sonarqube.ws.client.measures.MeasuresService measuresService = org.mockito.Mockito.mock(org.sonarqube.ws.client.measures.MeasuresService.class);
+        when(wsClient.measures()).thenReturn(measuresService);
+        org.sonarqube.ws.Measures.Measure measure1 = org.sonarqube.ws.Measures.Measure.newBuilder().setMetric("bugs").setValue("5").build();
+        org.sonarqube.ws.Measures.Measure measure2 = org.sonarqube.ws.Measures.Measure.newBuilder().setMetric(org.sonar.api.measures.CoreMetrics.ALERT_STATUS.key()).setValue("OK").build();
+        org.sonarqube.ws.Measures.Measure measure3 = org.sonarqube.ws.Measures.Measure.newBuilder().setMetric("unknown_metric_key").setValue("42.5").build();
+        org.sonarqube.ws.Measures.ComponentWsResponse measuresResponse = org.sonarqube.ws.Measures.ComponentWsResponse.newBuilder()
+                .setComponent(org.sonarqube.ws.Measures.Component.newBuilder()
+                        .addMeasures(measure1)
+                        .addMeasures(measure2)
+                        .addMeasures(measure3)
+                        .build())
+                .build();
+        when(measuresService.component(org.mockito.ArgumentMatchers.any())).thenReturn(measuresResponse);
         
         // Execute
         handler.handle(request, response);
