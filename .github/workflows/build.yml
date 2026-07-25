@@ -19,8 +19,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - profile: sq-9x
-            label: "9.x"
           - profile: sq-10x
             label: "10.8"
           - profile: sq-25x
@@ -70,7 +68,7 @@ jobs:
           path: target/sonar-prometheus-exporter-sq${{ matrix.label }}.jar
 
       - name: Deploy to GitHub Packages
-        if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+        if: github.ref == 'refs/heads/main'
         run: mvn --batch-mode deploy -P ${{ matrix.profile }} -DskipTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,7 +76,7 @@ jobs:
   release:
     name: Publish Release
     needs: build
-    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write

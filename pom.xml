@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>co.etam</groupId>
-    <artifactId>sonar-prometheus-exporter</artifactId>
+    <artifactId>sonar-prometheus-exporter${pkg.suffix}</artifactId>
     <packaging>sonar-plugin</packaging>
     <version>3.0.0</version>
 
@@ -49,6 +49,7 @@
     </distributionManagement>
 
     <properties>
+        <pkg.suffix></pkg.suffix>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Target SonarQube API version for compilation -->
         <sonar.apiVersion>26.2.0.119303</sonar.apiVersion>
@@ -163,6 +164,7 @@
         <profile>
             <id>sq-10x</id>
             <properties>
+                <pkg.suffix>-sq10.8</pkg.suffix>
                 <sonar.apiVersion>10.7.0.96327</sonar.apiVersion>
                 <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
             </properties>
@@ -171,6 +173,7 @@
         <profile>
             <id>sq-25x</id>
             <properties>
+                <pkg.suffix>-sq25.10</pkg.suffix>
                 <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
                 <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
             </properties>
@@ -182,6 +185,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
+                <pkg.suffix></pkg.suffix>
                 <sonar.apiVersion>26.2.0.119303</sonar.apiVersion>
                 <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
             </properties>
