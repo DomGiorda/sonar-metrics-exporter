@@ -162,7 +162,7 @@
         <profile>
             <id>sq-10x</id>
             <properties>
-                <sonar.apiVersion>10.8.0</sonar.apiVersion>
+                <sonar.apiVersion>10.7.0.96327</sonar.apiVersion>
                 <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
             </properties>
         </profile>
