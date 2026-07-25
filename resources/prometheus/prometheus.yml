@@ -3,10 +3,14 @@ global:
   scrape_timeout: 10s
 
 scrape_configs:
-  - job_name: 'sonarqube'
+  - job_name: 'sonar'
     metrics_path: '/api/prometheus/metrics'
+    # If SonarQube requires authentication (forceAuthentication enabled), specify credentials:
+    # basic_auth:
+    #   username: 'admin'
+    #   password: '<your-password>'
+    # OR:
+    # bearer_token: '<your-sonarqube-user-token>'
     static_configs:
-      - targets: ['sonarqube:9000']
-    # Optional: add labels so it's easy to filter in Prometheus/Grafana
-    metrics_path: /api/prometheus/metrics
+      - targets: ['sonar:9000']
     relabel_configs: []

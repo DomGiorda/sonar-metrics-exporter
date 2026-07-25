@@ -81,8 +81,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_ncloc{name=~\"$project_name\"}",
-          "legendFormat": "{{name}}",
+          "expr": "sonarqube_ncloc{key=~\"$project_key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -149,8 +149,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_index{name=~\"$project_name\"}",
-          "legendFormat": "{{name}}",
+          "expr": "sonarqube_sqale_index{key=~\"$project_key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -246,10 +246,10 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sonarqube_alert_status{name=~\"$project_name\"}",
+          "expr": "sonarqube_alert_status{key=~\"$project_key\"}",
           "format": "heatmap",
           "instant": false,
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -345,9 +345,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_hotspots{name=~\"$project_name\"}",
+          "expr": "sonarqube_security_hotspots{key=~\"$project_key\"}",
           "format": "heatmap",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -443,9 +443,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_code_smells{name=~\"$project_name\"}",
+          "expr": "sonarqube_code_smells{key=~\"$project_key\"}",
           "format": "heatmap",
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -506,8 +506,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_vulnerabilities{name=~\"$project_name\"}",
-          "legendFormat": "{{name}}",
+          "expr": "sonarqube_vulnerabilities{key=~\"$project_key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -581,8 +581,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{name=~\"$project_name\"}",
-          "legendFormat": "{{name}}",
+          "expr": "sonarqube_violations{key=~\"$project_key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -678,7 +678,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_open_issues{name=~\"$project_name\"}",
+          "expr": "sonarqube_open_issues{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -689,9 +689,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_lines_to_cover{name=~\"$project_name\"}",
+          "expr": "sonarqube_lines_to_cover{key=~\"$project_key\"}",
           "hide": false,
-          "legendFormat": "{{name}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "B"
         },
@@ -701,7 +701,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_confirmed_issues{name=~\"$project_name\"}",
+          "expr": "sonarqube_confirmed_issues{key=~\"$project_key\"}",
           "hide": false,
           "legendFormat": "{{__name__}}",
           "range": true,
@@ -713,7 +713,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_false_positive_issues{name=~\"$project_name\"} ",
+          "expr": "sonarqube_false_positive_issues{key=~\"$project_key\"} ",
           "hide": false,
           "legendFormat": "{{__name__}}",
           "range": true,
@@ -725,7 +725,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{name=~\"$project_name\"}",
+          "expr": "sonarqube_violations{key=~\"$project_key\"}",
           "hide": false,
           "legendFormat": "{{__name__}}",
           "range": true,
@@ -805,7 +805,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_vulnerabilities{name=~\"$project_name\"}",
+          "expr": "sonarqube_vulnerabilities{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -871,7 +871,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_remediation_effort{name=~\"$project_name\"}",
+          "expr": "sonarqube_security_remediation_effort{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -937,7 +937,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_hotspots_reviewed_status{name=~\"$project_name\"}",
+          "expr": "sonarqube_security_hotspots_reviewed_status{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1030,7 +1030,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_rating{name=~\"$project_name\"}",
+          "expr": "sonarqube_security_rating{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1127,7 +1127,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_review_rating{name=~\"$project_name\"}",
+          "expr": "sonarqube_security_review_rating{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1206,7 +1206,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_lines{name=~\"$project_name\"}",
+          "expr": "sonarqube_duplicated_lines{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1217,7 +1217,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_files{name=~\"$project_name\"} ",
+          "expr": "sonarqube_duplicated_files{key=~\"$project_key\"} ",
           "hide": false,
           "legendFormat": "{{__name__}}",
           "range": true,
@@ -1229,7 +1229,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_blocks{name=~\"$project_name\"}",
+          "expr": "sonarqube_duplicated_blocks{key=~\"$project_key\"}",
           "hide": false,
           "legendFormat": "{{__name__}}",
           "range": true,
@@ -1298,7 +1298,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_lines_density{name=~\"$project_name\"}",
+          "expr": "sonarqube_duplicated_lines_density{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1378,7 +1378,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_coverage{name=~\"$project_name\"}",
+          "expr": "sonarqube_coverage{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1440,7 +1440,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_lines_to_cover{name=~\"$project_name\"}",
+          "expr": "sonarqube_lines_to_cover{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1502,7 +1502,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_tests{name=~\"$project_name\"}",
+          "expr": "sonarqube_tests{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1577,7 +1577,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{name=~\"$project_name\"}",
+          "expr": "sonarqube_violations{key=~\"$project_key\"}",
           "hide": false,
           "legendFormat": "{{rule}}",
           "range": true,
@@ -1660,7 +1660,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_bugs{name=~\"$project_name\"}",
+          "expr": "sonarqube_bugs{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1754,7 +1754,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_reliability_rating{name=~\"$project_name\"}",
+          "expr": "sonarqube_reliability_rating{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -1813,7 +1813,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_reliability_remediation_effort{name=~\"$project_name\"}",
+          "expr": "sonarqube_reliability_remediation_effort{key=~\"$project_key\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1885,7 +1885,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_code_smells{name=~\"$project_name\"}",
+          "expr": "sonarqube_code_smells{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -2002,7 +2002,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_rating{name=~\"$project_name\"}",
+          "expr": "sonarqube_sqale_rating{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -2061,7 +2061,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_index{name=~\"$project_name\"}",
+          "expr": "sonarqube_sqale_index{key=~\"$project_key\"}",
           "legendFormat": "{{__name__}}",
           "range": true,
           "refId": "A"
@@ -2137,8 +2137,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_complexity{name=~\"$project_name\"}",
-          "legendFormat": "{{project_name}}",
+          "expr": "sonarqube_complexity{key=~\"$project_key\"}",
+          "legendFormat": "{{project_key}}",
           "range": true,
           "refId": "A"
         }
@@ -2196,8 +2196,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_cognitive_complexity{name=~\"$project_name\"}",
-          "legendFormat": "{{project_name}}",
+          "expr": "sonarqube_cognitive_complexity{key=~\"$project_key\"}",
+          "legendFormat": "{{project_key}}",
           "range": true,
           "refId": "A"
         }
@@ -2255,8 +2255,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_complexity{name=~\"$project_name\"}",
-          "legendFormat": "{{project_name}}",
+          "expr": "sonarqube_complexity{key=~\"$project_key\"}",
+          "legendFormat": "{{project_key}}",
           "range": true,
           "refId": "A"
         }
@@ -2344,7 +2344,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_exporter_up{name=~\"$project_name\"}",
+          "expr": "sonarqube_exporter_up{key=~\"$project_key\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2360,7 +2360,7 @@
               "event_id",
               "job",
               "project_version",
-              "project_name"
+              "project_key"
             ],
             "mode": "columns",
             "valueLabel": "__name__"

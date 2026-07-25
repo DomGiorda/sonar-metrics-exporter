@@ -6,8 +6,23 @@
     <groupId>co.etam</groupId>
     <artifactId>sonar-prometheus-exporter</artifactId>
     <packaging>sonar-plugin</packaging>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
+
+    <name>SonarQube Prometheus Exporter</name>
+    <description>Prometheus Exporter Plugin for SonarQube</description>
     <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/DomGiorda/sonar-metrics-exporter/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/DomGiorda/sonar-metrics-exporter.git</connection>
+        <developerConnection>scm:git:git@github.com:DomGiorda/sonar-metrics-exporter.git</developerConnection>
+        <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
+    </scm>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -16,24 +31,37 @@
             <comments>A business-friendly OSS license</comments>
         </license>
     </licenses>
+
     <developers>
         <developer>
-            <name>Etam</name>
+            <id>DomGiorda</id>
+            <name>DomGiorda</name>
+            <url>https://github.com/DomGiorda</url>
         </developer>
     </developers>
 
-    <name>SonarQube Prometheus Exporter</name>
-    <description>Prometheus Exporter for SonarQube</description>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/DomGiorda/sonar-metrics-exporter</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Target SonarQube API version for compilation. Updated to 10.8 as requested. -->
-        <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
-        <!-- Pin plugin API at the maximum supported version you provided. This
-         property is used only for the sonar-plugin-api artifact. -->
+        <!-- Target SonarQube API version for compilation -->
+        <sonar.apiVersion>26.2.0.119303</sonar.apiVersion>
+        <!-- Pin plugin API version for sonar-plugin-api -->
         <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
         <jdk.min.version>17</jdk.min.version>
         <sonar.sources>src/main/java</sonar.sources>
+
+        <!-- SonarCloud Configuration -->
+        <sonar.organization>domgiorda</sonar.organization>
+        <sonar.projectKey>DomGiorda_sonar-metrics-exporter</sonar.projectKey>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.coverage.exclusions>**/PrometheusExporterPlugin.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -61,13 +89,13 @@
             <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
             <version>${sonar.pluginApiVersion}</version>
-          <scope>provided</scope>
+            <scope>provided</scope>
         </dependency>
-        <!-- Align sonar-ws to the SonarQube version; update as needed if exact patch version required -->
+        <!-- Align sonar-ws to the SonarQube version -->
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-ws</artifactId>
@@ -90,12 +118,13 @@
             <plugin>
                 <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
                 <artifactId>sonar-packaging-maven-plugin</artifactId>
-                <version>1.17</version>
+                <version>1.23.0.740</version>
                 <extensions>true</extensions>
                 <configuration>
                     <pluginKey>prometheus-exporter</pluginKey>
                     <pluginClass>co.etam.sonar.prometheus.PrometheusExporterPlugin</pluginClass>
                     <pluginName>Prometheus Exporter</pluginName>
+                    <pluginApiMinVersion>${sonar.pluginApiVersion}</pluginApiMinVersion>
                 </configuration>
             </plugin>
             <plugin>
@@ -107,7 +136,56 @@
                     <target>${jdk.min.version}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>sq-10x</id>
+            <properties>
+                <sonar.apiVersion>10.7.0.96327</sonar.apiVersion>
+                <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>sq-25x</id>
+            <properties>
+                <sonar.apiVersion>25.10.0.114319</sonar.apiVersion>
+                <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>sq-26x</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <sonar.apiVersion>26.2.0.119303</sonar.apiVersion>
+                <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

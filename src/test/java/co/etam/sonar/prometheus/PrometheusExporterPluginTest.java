@@ -34,13 +34,12 @@ class PrometheusExporterPluginTest {
 
         plugin.define(context);
 
-        // Verify the plugin attempted to register property definitions and the web service class
         verify(context).addExtensions(anyList());
         verify(context).addExtension(PrometheusWebService.class);
     }
 
     @Test
-    void define_registersExpectedPropertyKeys() {
+    void define_registersExpectedPropertyKeysAndDefaults() {
         PrometheusExporterPlugin plugin = new PrometheusExporterPlugin();
 
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
@@ -49,9 +48,10 @@ class PrometheusExporterPluginTest {
 
         verify(context).addExtensions(captor.capture());
 
+        @SuppressWarnings("unchecked")
         List<PropertyDefinition> props = (List<PropertyDefinition>) captor.getValue();
 
-        assertEquals(PrometheusWebService.SUPPORTED_METRICS.size(), props.size(), "Should register one property per supported metric");
+        assertEquals(PrometheusWebService.SUPPORTED_METRICS.size() + 1, props.size(), "Should register properties for supported metrics plus severity filter");
 
         Set<String> actualKeys = props.stream()
                 .map(PropertyDefinition::key)
@@ -60,7 +60,26 @@ class PrometheusExporterPluginTest {
         Set<String> expectedKeys = PrometheusWebService.SUPPORTED_METRICS.stream()
                 .map(m -> PrometheusWebService.CONFIG_PREFIX + m.getKey())
                 .collect(Collectors.toSet());
+        expectedKeys.add(PrometheusWebService.CONFIG_PREFIX + "severity");
 
-        assertEquals(expectedKeys, actualKeys, "Registered property keys should match supported metric keys with the configured prefix");
+        assertEquals(expectedKeys, actualKeys, "Registered property keys should match supported metric keys and severity configuration");
+
+        PropertyDefinition severityProp = props.stream()
+                .filter(p -> p.key().equals(PrometheusWebService.CONFIG_PREFIX + "severity"))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(severityProp);
+        assertEquals(PropertyType.STRING, severityProp.type());
+        assertEquals("", severityProp.defaultValue());
+
+        PropertyDefinition nclocProp = props.stream()
+                .filter(p -> p.key().equals(PrometheusWebService.CONFIG_PREFIX + "ncloc"))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(nclocProp);
+        assertEquals(PropertyType.BOOLEAN, nclocProp.type());
+        assertEquals("true", nclocProp.defaultValue());
     }
 }

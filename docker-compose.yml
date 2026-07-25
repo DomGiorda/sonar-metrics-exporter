@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   sonarqube:
     # Default image points to SonarQube 10.8 Community; change the image tag if you need a different version.
-    image: sonarqube:25.10.0.114319-community
+    image: sonarqube:26.7.0.124771-community
     container_name: sonar
     ports:
       - "9000:9000"
@@ -31,9 +29,21 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     restart: unless-stopped
+    depends_on:
+      - sonarqube
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
 
 volumes:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_temp:
   prometheus_data:
+  grafana_data:
