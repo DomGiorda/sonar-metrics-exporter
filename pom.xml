@@ -160,17 +160,9 @@
 
     <profiles>
         <profile>
-            <id>sq-9x</id>
-            <properties>
-                <sonar.apiVersion>9.4.0.54424</sonar.apiVersion>
-                <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
-            </properties>
-        </profile>
-
-        <profile>
             <id>sq-10x</id>
             <properties>
-                <sonar.apiVersion>10.8.1.113263</sonar.apiVersion>
+                <sonar.apiVersion>10.8.0</sonar.apiVersion>
                 <sonar.pluginApiVersion>9.4.0.54424</sonar.pluginApiVersion>
             </properties>
         </profile>
