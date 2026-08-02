@@ -1,11 +1,62 @@
-# SonarQube metrics Exporter - Release Notes
+# SonarQube Metrics Exporter - Release Notes
+
+## Version 3.1.0
+
+[![Build Status](https://github.com/DomGiorda/sonar-metrics-exporter/actions/workflows/build.yml/badge.svg)](https://github.com/DomGiorda/sonar-metrics-exporter/actions)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Java Version](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
+[![SonarQube API](https://img.shields.io/badge/SonarQube-10.8_%7C_25.10_%7C_2026.x-brightgreen.svg)](https://www.sonarqube.org/)
+
+---
+
+### Executive Summary
+
+Version **3.1.0** represents a major release of the **SonarQube Metrics Exporter Plugin**. This release introduces full project rebranding to `sonar-metrics-exporter`, artifact standardization (`sonar-metrics-exporter.jar`), complete compatibility with SonarQube 2026.x platform APIs, multi-branch metric extraction, granular severity filtering, expanded metric dictionary (over 20 quality metrics), and a comprehensive unit test suite reaching 100% logic branch coverage.
+
+---
+
+### Key Improvements
+
+- **Full Project Rebranding**: Rebranded plugin key to `metrics-exporter`, artifact ID to `sonar-metrics-exporter`, and package structure to `co.etam.sonar.metrics`.
+- **SonarQube 2026.x Platform Support**: Verified compatibility with SonarQube `2026.x` (`26.2.0.x` / `26.7.0.x`) and `sonar-ws:25.10+`.
+- **Expanded Metrics Dictionary**: Exposes over 20 metrics including Unit Tests (`TESTS`, `TEST_FAILURES`, `TEST_ERRORS`, `SKIPPED_TESTS`, `TEST_SUCCESS_DENSITY`), New Code period metrics (`NEW_BUGS`, `NEW_VULNERABILITIES`, `NEW_CODE_SMELLS`, `NEW_COVERAGE`, `NEW_DUPLICATED_LINES_DENSITY`), Debt Ratio (`SQALE_DEBT_RATIO`), and Ratings (`SQALE_RATING`, `RELIABILITY_RATING`, `SECURITY_RATING`).
+- **Dynamic Branch Resolution**: Automatic branch discovery using SonarQube Project Branches Web API with a dimensional `branch` label added to Prometheus gauges (defaults to `"main"` for Community Edition).
+- **Granular Severity Filtering**: Filter exported metrics by severity via query parameter `?severity=BLOCKER,CRITICAL` or via SonarQube Administration settings.
+- **Robust Code Coverage & Quality**: 100% branch and line logic coverage across core Web Service handlers and data processing components.
+
+---
+
+### Target Compatibility & Distribution Matrix
+
+| Profile | Target SonarQube Version | Artifact Name | Target Runtime | Primary Distribution |
+| :--- | :--- | :--- | :--- | :--- |
+| `sq-26x` (Default) | SonarQube 2026.x / Latest | `sonar-metrics-exporter.jar` | Java 17+ | Default Release Asset |
+| `sq-25x` | SonarQube 25.10 LTS | `sonar-metrics-exporter-sq25.10.jar` | Java 17+ | GitHub Releases / Assets |
+| `sq-10x` | SonarQube 10.8 LTS | `sonar-metrics-exporter-sq10.8.jar` | Java 17+ | GitHub Releases / Assets |
+
+---
+
+### Quickstart Installation (v3.1.0)
+
+```bash
+# 1. Download the v3.1.0 release artifact
+wget https://github.com/DomGiorda/sonar-metrics-exporter/releases/download/v3.1.0/sonar-metrics-exporter.jar
+
+# 2. Place artifact into SonarQube plugins directory
+mv sonar-metrics-exporter.jar /opt/sonarqube/extensions/plugins/
+
+# 3. Restart SonarQube service
+systemctl restart sonarqube
+```
+
+---
 
 ## Version 3.0.0
 
 [![Build Status](https://github.com/DomGiorda/sonar-metrics-exporter/actions/workflows/build.yml/badge.svg)](https://github.com/DomGiorda/sonar-metrics-exporter/actions)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Java Version](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
-[![SonarQube API](https://img.shields.io/badge/SonarQube-10.8_%7C_25.10_%7C_2026.x-brightgreen.svg)](https://www.sonarqube.org/)
+[![SonarQube API](https://img.shields.io/badge/SonarQube-10.8_%7C_25.10_%7C_2026-brightgreen.svg)](https://www.sonarqube.org/)
 
 ---
 

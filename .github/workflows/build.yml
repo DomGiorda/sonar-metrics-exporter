@@ -24,7 +24,7 @@ jobs:
           - profile: sq-25x
             label: "25.10"
           - profile: sq-26x
-            label: "2026.x"
+            label: "2026"
 
     steps:
       - name: Checkout repository
@@ -93,7 +93,7 @@ jobs:
         run: |
           mkdir -p release_assets
           find artifacts -name "*.jar" -exec cp {} release_assets/ \;
-          cp release_assets/sonar-metrics-exporter-sq2026.x.jar release_assets/sonar-metrics-exporter.jar 2>/dev/null || true
+          cp release_assets/sonar-metrics-exporter-sq2026.jar release_assets/sonar-metrics-exporter.jar 2>/dev/null || true
           ls -la release_assets/
 
       - name: Get project version
