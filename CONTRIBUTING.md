@@ -1,13 +1,13 @@
 # Contributing Guide
 
-This document outlines security practices and guidelines for contributing to the SonarQube Prometheus Exporter plugin.
+This document outlines security practices and guidelines for contributing to the SonarQube Metrics Exporter plugin.
 
 ## Security Guidelines
 
 When making changes, ensure:
 
 1. No outbound network connections
-   - The plugin should only respond to incoming Prometheus scrapes
+   - The plugin should only respond to incoming Metrics scrapes
    - Use only SonarQube's internal API for data access
 
 2. Minimal permissions
@@ -36,7 +36,7 @@ When making changes, ensure:
 
 2. Verify JAR contents:
    ```powershell
-   jar tvf target/sonar-prometheus-exporter-*.jar
+   jar tvf target/sonar-metrics-exporter-*.jar
    ```
 
 3. Run all tests:

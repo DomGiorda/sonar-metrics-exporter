@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>co.etam</groupId>
-    <artifactId>sonar-prometheus-exporter${pkg.suffix}</artifactId>
+    <artifactId>sonar-metrics-exporter${pkg.suffix}</artifactId>
     <packaging>sonar-plugin</packaging>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 
-    <name>SonarQube Prometheus Exporter</name>
-    <description>Prometheus Exporter Plugin for SonarQube</description>
+    <name>SonarQube Metrics Exporter</name>
+    <description>Metrics Exporter Plugin for SonarQube</description>
     <url>https://github.com/DomGiorda/sonar-metrics-exporter</url>
 
     <issueManagement>
@@ -122,9 +122,9 @@
                 <version>1.23.0.740</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <pluginKey>prometheus-exporter</pluginKey>
-                    <pluginClass>co.etam.sonar.prometheus.PrometheusExporterPlugin</pluginClass>
-                    <pluginName>Prometheus Exporter</pluginName>
+                    <pluginKey>metrics-exporter</pluginKey>
+                    <pluginClass>co.etam.sonar.metrics.PrometheusExporterPlugin</pluginClass>
+                    <pluginName>Metrics Exporter</pluginName>
                     <pluginApiMinVersion>${sonar.pluginApiVersion}</pluginApiMinVersion>
                 </configuration>
             </plugin>

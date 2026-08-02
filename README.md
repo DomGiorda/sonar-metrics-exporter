@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://sonarcloud.io/images/project_badges/sonarcloud-black.svg" alt="SonarCloud" width="120" style="margin-bottom: 10px;"/>
-  <h1>SonarQube Prometheus Exporter</h1>
-  <p><strong>Prometheus Exporter Plugin for SonarQube</strong></p>
+  <h1>SonarQube Metrics Exporter</h1>
+  <p><strong>Metrics Exporter Plugin for SonarQube</strong></p>
 
   <p>
     <a href="https://sonarcloud.io/summary/new_code?id=DomGiorda_sonar-metrics-exporter"><img src="https://sonarcloud.io/api/project_badges/measure?project=DomGiorda_sonar-metrics-exporter&metric=alert_status" alt="Quality gate status" /></a>
@@ -12,13 +12,13 @@
   </p>
 
   <p>
-    <a href="https://github.com/DomGiorda/sonarqube-prometheus-exporter/releases"><img src="https://img.shields.io/github/v/release/DomGiorda/sonar-metrics-exporter.svg?style=flat-square" alt="GitHub release" /></a>
-    <a href="https://github.com/DomGiorda/sonarqube-prometheus-exporter/releases"><img src="https://img.shields.io/github/downloads/DomGiorda/sonar-metrics-exporter/total.svg?style=flat-square" alt="GitHub downloads" /></a>
+    <a href="https://github.com/DomGiorda/sonar-metrics-exporter/releases"><img src="https://img.shields.io/github/v/release/DomGiorda/sonar-metrics-exporter.svg?style=flat-square" alt="GitHub release" /></a>
+    <a href="https://github.com/DomGiorda/sonar-metrics-exporter/releases"><img src="https://img.shields.io/github/downloads/DomGiorda/sonar-metrics-exporter/total.svg?style=flat-square" alt="GitHub downloads" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License" /></a>
   </p>
 
   <p>
-    <a href="#whats-new-in-version-300"><b>What's New</b></a> •
+    <a href="#whats-new-in-version-310"><b>What's New</b></a> •
     <a href="#features"><b>Features</b></a> •
     <a href="#requirements"><b>Requirements</b></a> •
     <a href="#installation"><b>Installation</b></a> •
@@ -30,14 +30,14 @@
 
 ---
 
-## 🚀 What's New in Version 3.0.0
-We are thrilled to announce a major milestone with **Version 3.0.0**, packed with new features and foundational improvements:
+## 🚀 What's New in Version 3.1.0
+We are thrilled to announce **Version 3.1.0**, featuring full rebranding to **SonarQube Metrics Exporter**, optimized package naming, and unversioned asset distribution for streamlined deployments:
 
+- **Rebranded Plugin & Artifact**: Renamed plugin key to `metrics-exporter` and default artifact distribution to `sonar-metrics-exporter.jar`.
 - **Upgraded Compatibility**: Guaranteed support for the new SonarQube `2026.x` (`26.2.0.x`) platform architecture.
-- **Extensive Metrics Expansion**: Added over 20 new supported metrics. You can now track granular test execution stats (tests, skipped, errors, failures), maintainability ratings (`SQALE_RATING`), security hotspots, new code coverage, and technical debt ratio, directly from Prometheus.
-- **Branch-Aware Metrics Export**: The exporter now dynamically queries SonarQube for available project branches. A new `branch` label is seamlessly integrated into every exported Prometheus metric, allowing precise multi-branch tracking on Grafana dashboards. For Community Editions lacking branch API support, it safely falls back to labeling as `main`.
-- **Granular Severity Filtering**: Added support to filter severity-specific metrics (like vulnerabilities and bugs). This can be driven directly via the `severity` query parameter on the `/api/prometheus/metrics` endpoint (e.g., `?severity=BLOCKER,CRITICAL`) or set globally in the Plugin Administration configuration.
-- **Refactored Architecture & Enhanced Reliability**: Reduced cognitive complexity across the codebase. Test coverage has been drastically improved, ensuring robust fallback paths when parsing non-standard metric outputs and unblocking further extensibility.
+- **Extensive Metrics Expansion**: Supported over 20 metrics (tests, skipped, errors, failures, maintainability ratings, security hotspots, code coverage, debt ratio).
+- **Branch-Aware Metrics Export**: Dynamic branch resolution with `branch` label support across Prometheus metrics.
+- **Granular Severity Filtering**: Filter severity-specific metrics via `?severity=BLOCKER,CRITICAL` or SonarQube Administration.
 
 ---
 
@@ -65,8 +65,13 @@ We are thrilled to announce a major milestone with **Version 3.0.0**, packed wit
 
 ## 💾 Installation
 
-1. Download the [latest snapshot release](https://github.com/DomGiorda/sonarqube-prometheus-exporter/releases/tag/v1.0.0-SNAPSHOT-2018-07-04).
-2. Drop `sonar-prometheus-exporter-1.0.0-SNAPSHOT.jar` into the `$SONARQUBE_HOME/extensions/plugins` directory.
+1. Download the latest release JAR:
+   ```bash
+   wget https://github.com/DomGiorda/sonar-metrics-exporter/releases/download/v3.1.0/sonar-metrics-exporter.jar
+   ```
+   Or browse the [latest releases page](https://github.com/DomGiorda/sonar-metrics-exporter/releases/latest).
+
+2. Drop `sonar-metrics-exporter.jar` into the `$SONARQUBE_HOME/extensions/plugins` directory.
 3. Restart your SonarQube server.
 
 ---

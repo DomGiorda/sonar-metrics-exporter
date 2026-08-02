@@ -21,10 +21,10 @@ The plugin requires:
 3. You can verify the JAR contents:
    ```powershell
    # View JAR contents
-   jar tvf target/sonar-prometheus-exporter-*.jar
+   jar tvf target/sonar-metrics-exporter-*.jar
    
    # Calculate SHA256 hash
-   Get-FileHash target/sonar-prometheus-exporter-*.jar -Algorithm SHA256
+   Get-FileHash target/sonar-metrics-exporter-*.jar -Algorithm SHA256
    ```
 
 4. Compare the hash with the one from the release page

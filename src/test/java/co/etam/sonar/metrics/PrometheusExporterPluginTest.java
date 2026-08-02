@@ -1,4 +1,4 @@
-package co.etam.sonar.prometheus;
+package co.etam.sonar.metrics;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -59,13 +59,13 @@ jobs:
 
       - name: Rename JAR
         run: |
-          mv target/sonar-prometheus-exporter-*.jar target/sonar-prometheus-exporter-sq${{ matrix.label }}.jar
+          mv target/sonar-metrics-exporter-*.jar target/sonar-metrics-exporter-sq${{ matrix.label }}.jar
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: plugin-sq${{ matrix.label }}
-          path: target/sonar-prometheus-exporter-sq${{ matrix.label }}.jar
+          path: target/sonar-metrics-exporter-sq${{ matrix.label }}.jar
 
       - name: Deploy to GitHub Packages
         if: github.ref == 'refs/heads/main'
@@ -93,6 +93,7 @@ jobs:
         run: |
           mkdir -p release_assets
           find artifacts -name "*.jar" -exec cp {} release_assets/ \;
+          cp release_assets/sonar-metrics-exporter-sq2026.x.jar release_assets/sonar-metrics-exporter.jar 2>/dev/null || true
           ls -la release_assets/
 
       - name: Get project version

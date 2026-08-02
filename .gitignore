@@ -7,3 +7,4 @@ dependency-reduced-pom.xml
 **/test/**  */
 plugins
 .scannerwork/**
+.agent/**

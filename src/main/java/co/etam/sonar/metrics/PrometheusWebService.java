@@ -1,4 +1,4 @@
-package co.etam.sonar.prometheus;
+package co.etam.sonar.metrics;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Gauge;
