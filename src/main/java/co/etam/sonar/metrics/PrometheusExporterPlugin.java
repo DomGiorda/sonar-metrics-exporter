@@ -1,4 +1,4 @@
-package co.etam.sonar.prometheus;
+package co.etam.sonar.metrics;
 
 import org.sonar.api.Plugin;
 import org.sonar.api.PropertyType;

@@ -1,4 +1,4 @@
-package co.etam.sonar.prometheus;
+package co.etam.sonar.metrics;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Gauge;
@@ -7,6 +7,7 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.server.ws.Request;
 import org.sonar.api.server.ws.WebService;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -36,6 +37,7 @@ public class PrometheusWebService implements WebService {
     static final String CONFIG_PREFIX = "prometheus.export.";
     private static final String METRIC_PREFIX = "sonarqube_";
     private static final String PARAM_SEVERITY = "severity";
+    private static final String PARAM_BRANCH = "branch";
 
     private final Configuration configuration;
     private final Map<String, Gauge> gauges = new HashMap<>();
@@ -148,12 +150,7 @@ public class PrometheusWebService implements WebService {
                 Set<String> allowedSeverities = parseSeverityFilter(severityParam);
 
                 if (!this.enabledMetrics.isEmpty()) {
-                    try {
-                        WsClient wsClient = createWsClient(request);
-                        processAllProjects(wsClient, allowedSeverities, registry, requestGauges);
-                    } catch (Exception e) {
-                        LOG.warn("Failed to create WsClient or process projects: {}", e.getMessage());
-                    }
+                    processProjects(request, allowedSeverities, registry, requestGauges);
                 }
 
                 OutputStream output = response.stream()
@@ -181,6 +178,8 @@ public class PrometheusWebService implements WebService {
                         TextFormat.write004(writer, fallbackRegistry.metricFamilySamples());
                     }
                 } catch (Exception ignored) {
+                    // Ignore failures writing fallback response to avoid masking the primary error
+                    LOG.debug("Failed to write fallback Prometheus error metrics response: {}", ignored.getMessage());
                 }
             }
         });
@@ -188,8 +187,17 @@ public class PrometheusWebService implements WebService {
         controller.done();
     }
 
-    WsClient createWsClient(org.sonar.api.server.ws.Request request) {
+    WsClient createWsClient(Request request) {
         return WsClientFactories.getLocal().newClient(request.localConnector());
+    }
+
+    private void processProjects(Request request, Set<String> allowedSeverities, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        try {
+            WsClient wsClient = createWsClient(request);
+            processAllProjects(wsClient, allowedSeverities, registry, requestGauges);
+        } catch (Exception e) {
+            LOG.warn("Failed to create WsClient or process projects: {}", e.getMessage());
+        }
     }
 
     private Map<String, Gauge> registerGaugesForRegistry(CollectorRegistry registry) {
@@ -202,10 +210,12 @@ public class PrometheusWebService implements WebService {
                 Gauge gauge = Gauge.build()
                     .name(name)
                     .help(help)
-                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                    .labelNames("key", "name", PARAM_SEVERITY, PARAM_BRANCH)
                     .register(registry);
                 gaugesMap.put(key, gauge);
             } catch (Exception ignored) {
+                // Ignore metrics that fail to register to allow remaining metrics to register
+                LOG.debug("Failed to register metric gauge {}: {}", name, ignored.getMessage());
             }
         });
         return gaugesMap;
@@ -223,12 +233,12 @@ public class PrometheusWebService implements WebService {
     }
 
     private void processProjectBranches(WsClient wsClient, Components.Component project, Set<String> allowedSeverities, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
-        if (project == null || project.getKey() == null) {
+        if (project == null || project.getKey() == null || project.getKey().isEmpty()) {
             return;
         }
         try {
             List<String> branches = getBranches(wsClient, project.getKey());
-            if (branches != null) {
+            if (branches != null && !branches.isEmpty()) {
                 branches.forEach(branch -> processMeasuresForBranch(wsClient, project, branch, allowedSeverities, registry, requestGauges));
             }
         } catch (Exception e) {
@@ -254,46 +264,65 @@ public class PrometheusWebService implements WebService {
             return;
         }
         String metricKey = measure.getMetric();
-        String valueStr = measure.getValue();
-        double valueDouble;
-
-        if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
-            valueDouble = mapAlertStatusToDouble(valueStr);
-        } else {
-            valueDouble = parseDoubleOrDefault(valueStr, 0.0);
-        }
-
         String severity = determineSeverityFromMetricKey(metricKey);
 
         if (!matchesSeverityFilter(severity, allowedSeverities)) {
             return;
         }
 
-        Gauge gauge = requestGauges.get(metricKey);
-        if (gauge == null) {
-            String sanitizedName = sanitizeMetricName(metricKey);
+        double valueDouble = extractMeasureValue(metricKey, measure.getValue());
+        Gauge gauge = getOrCreateGauge(metricKey, registry, requestGauges);
+        setGaugeValue(gauge, project, severity, branch, valueDouble);
+    }
+
+    private double extractMeasureValue(String metricKey, String valueStr) {
+        if (CoreMetrics.ALERT_STATUS.key().equals(metricKey)) {
+            return mapAlertStatusToDouble(valueStr);
+        }
+        return parseDoubleOrDefault(valueStr, 0.0);
+    }
+
+    private Gauge getOrCreateGauge(String metricKey, CollectorRegistry registry, Map<String, Gauge> requestGauges) {
+        return requestGauges.computeIfAbsent(metricKey, key -> {
+            String sanitizedName = sanitizeMetricName(key);
             try {
-                gauge = Gauge.build()
+                return Gauge.build()
                         .name(sanitizedName)
-                        .help("Metric exported from Sonar: " + metricKey)
-                        .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                        .help("Metric exported from Sonar: " + key)
+                        .labelNames("key", "name", PARAM_SEVERITY, PARAM_BRANCH)
                         .register(registry);
-                requestGauges.put(metricKey, gauge);
             } catch (Exception ignored) {
+                // Ignore gauge registration failures for individual measures
+                LOG.debug("Failed to register gauge for metric key {}: {}", key, ignored.getMessage());
+                return null;
             }
+        });
+    }
+
+    private void setGaugeValue(Gauge gauge, Components.Component project, String severity, String branch, double valueDouble) {
+        if (gauge == null) {
+            return;
         }
 
-        if (gauge != null) {
-            try {
-                gauge.labels(
-                    project.getKey() != null ? project.getKey() : "",
-                    project.getName() != null ? project.getName() : "",
-                    severity,
-                    branch != null ? branch : "main"
-                ).set(valueDouble);
-            } catch (Exception ignored) {
-            }
+        String projectKey = extractProjectKey(project);
+        String projectName = extractProjectName(project);
+        String severityVal = severity != null ? severity : "ALL";
+        String branchVal = (branch != null && !branch.isEmpty()) ? branch : "main";
+
+        try {
+            gauge.labels(projectKey, projectName, severityVal, branchVal).set(valueDouble);
+        } catch (Exception ignored) {
+            // Ignore errors when setting gauge value for a measure
+            LOG.debug("Failed to set gauge value for project {} branch {}: {}", projectKey, branch, ignored.getMessage());
         }
+    }
+
+    private String extractProjectKey(Components.Component project) {
+        return (project != null && project.getKey() != null) ? project.getKey() : "";
+    }
+
+    private String extractProjectName(Components.Component project) {
+        return (project != null && project.getName() != null) ? project.getName() : "";
     }
 
     private void updateEnabledMetrics() {
@@ -318,10 +347,12 @@ public class PrometheusWebService implements WebService {
                 Gauge gauge = Gauge.build()
                     .name(name)
                     .help(help)
-                    .labelNames("key", "name", PARAM_SEVERITY, "branch")
+                    .labelNames("key", "name", PARAM_SEVERITY, PARAM_BRANCH)
                     .register();
                 this.gauges.put(key, gauge);
             } catch (Exception ignored) {
+                // Ignore gauge registration failures when updating enabled gauges
+                LOG.debug("Failed to update enabled gauge {}: {}", name, ignored.getMessage());
             }
         });
     }
@@ -350,8 +381,12 @@ public class PrometheusWebService implements WebService {
     private List<String> getBranches(WsClient wsClient, String projectKey) {
         try {
             ProjectBranches.ListWsResponse response = wsClient.projectBranches().list(new ListRequest().setProject(projectKey));
+            if (response == null || response.getBranchesList() == null) {
+                return Collections.singletonList("main");
+            }
             List<String> branches = response.getBranchesList().stream()
                     .map(ProjectBranches.Branch::getName)
+                    .filter(name -> name != null && !name.isEmpty())
                     .collect(Collectors.toList());
             return branches.isEmpty() ? Collections.singletonList("main") : branches;
         } catch (Exception e) {

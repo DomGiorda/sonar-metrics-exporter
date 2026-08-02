@@ -15,7 +15,7 @@ How to use
    mvn -DskipTests package
    ```
 
-   When build completes the plugin jar will be in `target/` (e.g. `target/sonar-prometheus-exporter-<version>.jar`).
+   When build completes the plugin jar will be in `target/` (e.g. `target/sonar-metrics-exporter-<version>.jar`).
 
 2. Install the plugin into the Compose stack:
 

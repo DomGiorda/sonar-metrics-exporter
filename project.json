@@ -1,0 +1,11 @@
+{
+  "_comment": "Place this file in the root directory of your repository. The orchestrator will read it automatically when no 'repositories' input is provided.",
+  "repositories": [
+    {
+      "name": "sonar-metrics-exporter",
+      "runtime": "java",
+      "type": "package",
+      "version": "3.1.0"
+    }
+  ]
+}
