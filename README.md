@@ -103,10 +103,13 @@ Alternatively, point your HTTP client to `http://localhost:9000/api/prometheus/m
 - Or configure default severities under **Administration** &rarr; **Configuration** &rarr; **General Settings** &rarr; **Prometheus Exporter** &rarr; **Filter by Severity**.
 
 ### 4. Grafana Dashboard
-You can import the sample dashboard from this file:
+You can import the sample dashboard template from:
 ```bash
 resources/grafana_dashboard.json
 ```
+
+- **Dynamic Project Filtering**: The dashboard includes a `$Key` template variable populated via `label_values(sonarqube_ncloc, key)` supporting **Multi-value** and **All** project selections.
+- **PromQL Queries & Legends**: All panel queries filter using `key=~"$Key"` and format legends with `{{key}}` to clearly display project identifiers across cards and time series graphs.
 
 > **Note:** The provided `grafana_dashboard.json` is a base template intended to help you quickly get started. Depending on your Grafana configuration, version, and custom panel customizations, the visual appearance may differ from the dashboard screenshot shown below.
 

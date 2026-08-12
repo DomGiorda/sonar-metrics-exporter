@@ -33,7 +33,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "- Lines (lines): The number of physical lines \n- Lines of code (ncloc): The number of physical lines that contain at least one character\n- Comment lines (comment_lines): The number of lines containing comment",
+      "description": "- Lines\u00a0(lines): The number of physical lines \n- Lines of code\u00a0(ncloc): The number of physical lines that contain at least one character\n- Comment lines\u00a0(comment_lines): The number of lines containing comment",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -81,7 +81,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_ncloc{key=~\"$project_key\"}",
+          "expr": "sonarqube_ncloc{key=~\"$Key\"}",
           "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
@@ -149,7 +149,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_index{key=~\"$project_key\"}",
+          "expr": "sonarqube_sqale_index{key=~\"$Key\"}",
           "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
@@ -176,7 +176,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "The state of the quality gate associated with your project. Possible values are ERROR and OK",
+      "description": "The state of the quality gate associated with your project. Possible values are\u00a0ERROR and\u00a0OK",
       "fieldConfig": {
         "defaults": {
           "mappings": [
@@ -246,7 +246,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sonarqube_alert_status{key=~\"$project_key\"}",
+          "expr": "sonarqube_alert_status{key=~\"$Key\"}",
           "format": "heatmap",
           "instant": false,
           "legendFormat": "{{key}}",
@@ -345,7 +345,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_hotspots{key=~\"$project_key\"}",
+          "expr": "sonarqube_security_hotspots{key=~\"$Key\"}",
           "format": "heatmap",
           "legendFormat": "{{key}}",
           "range": true,
@@ -443,7 +443,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_code_smells{key=~\"$project_key\"}",
+          "expr": "sonarqube_code_smells{key=~\"$Key\"}",
           "format": "heatmap",
           "legendFormat": "{{key}}",
           "range": true,
@@ -506,7 +506,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_vulnerabilities{key=~\"$project_key\"}",
+          "expr": "sonarqube_vulnerabilities{key=~\"$Key\"}",
           "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
@@ -581,7 +581,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{key=~\"$project_key\"}",
+          "expr": "sonarqube_violations{key=~\"$Key\"}",
           "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
@@ -678,8 +678,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_open_issues{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_open_issues{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         },
@@ -689,7 +689,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_lines_to_cover{key=~\"$project_key\"}",
+          "expr": "sonarqube_lines_to_cover{key=~\"$Key\"}",
           "hide": false,
           "legendFormat": "{{key}}",
           "range": true,
@@ -701,9 +701,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_confirmed_issues{key=~\"$project_key\"}",
+          "expr": "sonarqube_confirmed_issues{key=~\"$Key\"}",
           "hide": false,
-          "legendFormat": "{{__name__}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "C"
         },
@@ -713,9 +713,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_false_positive_issues{key=~\"$project_key\"} ",
+          "expr": "sonarqube_false_positive_issues{key=~\"$Key\"} ",
           "hide": false,
-          "legendFormat": "{{__name__}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "D"
         },
@@ -725,9 +725,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{key=~\"$project_key\"}",
+          "expr": "sonarqube_violations{key=~\"$Key\"}",
           "hide": false,
-          "legendFormat": "{{__name__}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "E"
         }
@@ -805,8 +805,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_vulnerabilities{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_vulnerabilities{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -871,8 +871,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_remediation_effort{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_security_remediation_effort{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -885,7 +885,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "The number of Security Hotspots",
+      "description": "The\u00a0number of Security Hotspots",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -937,13 +937,13 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_hotspots_reviewed_status{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_security_hotspots_reviewed_status{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "The number of Security Hotspots",
+      "title": "The\u00a0number of Security Hotspots",
       "type": "stat"
     },
     {
@@ -951,7 +951,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Security Rating (security_rating)\n- A = 0 Vulnerabilities\n- B = at least 1 Minor Vulnerability\n- C = at least 1 Major Vulnerability\n- D = at least 1 Critical Vulnerability\n- E = at least 1 Blocker Vulnerability",
+      "description": "Security Rating\u00a0(security_rating)\n- A = 0 Vulnerabilities\n- B = at least 1 Minor Vulnerability\n- C = at least 1 Major Vulnerability\n- D = at least 1 Critical Vulnerability\n- E = at least 1 Blocker Vulnerability",
       "fieldConfig": {
         "defaults": {
           "mappings": [
@@ -1030,8 +1030,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_rating{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_security_rating{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1127,8 +1127,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_security_review_rating{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_security_review_rating{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1154,7 +1154,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "- Duplicated blocks (duplicated_blocks): The number of duplicated blocks of lines.\n- Duplicated lines (duplicated_lines): The number of lines involved in duplications.\n- Duplicated files (duplicated_files): The number of files involved in duplications.",
+      "description": "- Duplicated blocks\u00a0(duplicated_blocks): The number of duplicated blocks of lines.\n- Duplicated lines\u00a0(duplicated_lines): The number of lines involved in duplications.\n- Duplicated files\u00a0(duplicated_files): The number of files involved in duplications.",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -1206,8 +1206,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_lines{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_duplicated_lines{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         },
@@ -1217,9 +1217,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_files{key=~\"$project_key\"} ",
+          "expr": "sonarqube_duplicated_files{key=~\"$Key\"} ",
           "hide": false,
-          "legendFormat": "{{__name__}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "B"
         },
@@ -1229,9 +1229,9 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_blocks{key=~\"$project_key\"}",
+          "expr": "sonarqube_duplicated_blocks{key=~\"$Key\"}",
           "hide": false,
-          "legendFormat": "{{__name__}}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "C"
         }
@@ -1244,7 +1244,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Duplicated lines (%) (duplicated_lines_density): duplicated_lines / (lines of code) * 100",
+      "description": "Duplicated lines (%)\u00a0(duplicated_lines_density):\u00a0duplicated_lines\u00a0/\u00a0(lines of code) * 100",
       "fieldConfig": {
         "defaults": {
           "mappings": [],
@@ -1298,8 +1298,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_duplicated_lines_density{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_duplicated_lines_density{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1378,8 +1378,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_coverage{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_coverage{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1440,8 +1440,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_lines_to_cover{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_lines_to_cover{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1502,8 +1502,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_tests{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_tests{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1577,7 +1577,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_violations{key=~\"$project_key\"}",
+          "expr": "sonarqube_violations{key=~\"$Key\"}",
           "hide": false,
           "legendFormat": "{{rule}}",
           "range": true,
@@ -1660,8 +1660,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_bugs{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_bugs{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1754,8 +1754,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_reliability_rating{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_reliability_rating{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1813,8 +1813,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_reliability_remediation_effort{key=~\"$project_key\"}",
-          "legendFormat": "__auto",
+          "expr": "sonarqube_reliability_remediation_effort{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -1885,8 +1885,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_code_smells{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_code_smells{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2002,8 +2002,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_rating{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_sqale_rating{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2061,8 +2061,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_sqale_index{key=~\"$project_key\"}",
-          "legendFormat": "{{__name__}}",
+          "expr": "sonarqube_sqale_index{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2137,8 +2137,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_complexity{key=~\"$project_key\"}",
-          "legendFormat": "{{project_key}}",
+          "expr": "sonarqube_complexity{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2196,8 +2196,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_cognitive_complexity{key=~\"$project_key\"}",
-          "legendFormat": "{{project_key}}",
+          "expr": "sonarqube_cognitive_complexity{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2255,8 +2255,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_complexity{key=~\"$project_key\"}",
-          "legendFormat": "{{project_key}}",
+          "expr": "sonarqube_complexity{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2344,8 +2344,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sonarqube_exporter_up{key=~\"$project_key\"}",
-          "legendFormat": "__auto",
+          "expr": "sonarqube_exporter_up{key=~\"$Key\"}",
+          "legendFormat": "{{key}}",
           "range": true,
           "refId": "A"
         }
@@ -2360,7 +2360,7 @@
               "event_id",
               "job",
               "project_version",
-              "project_key"
+              "key"
             ],
             "mode": "columns",
             "valueLabel": "__name__"
@@ -2385,18 +2385,18 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "sonarqube_bugs",
+        "definition": "label_values(sonarqube_ncloc, key)",
         "includeAll": true,
-        "label": "Project Name",
+        "label": "Key",
         "multi": true,
-        "name": "project_name",
+        "name": "Key",
         "options": [],
         "query": {
-          "query": "sonarqube_bugs",
+          "query": "label_values(sonarqube_ncloc, key)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
-        "regex": ".*name=\"([^\"]*).*",
+        "regex": "",
         "type": "query"
       }
     ]

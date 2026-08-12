@@ -3,8 +3,16 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ "main", "feature/*", "develop" ]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+      - 'resources/**'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/**'
+      - 'resources/**'
   release:
     types: [ published ]
 
